@@ -1,0 +1,49 @@
+<launch>
+    <env name="GAZEBO_MODEL_PATH" value="$GAZEBO_MODEL_PATH:$(find sjtu_drone)/models"/>
+    <env name="GAZEBO_PLUGIN_PATH" value="$GAZEBO_PLUGIN_PATH:$(find sjtu_drone)/plugins"/> <!--add custom plugins for drone to gazebo plugin path-->
+    <env name="GAZEBO_RESOURCE_PATH" value="$GAZEBO_RESOURCE_PATH:$(find sjtu_drone)/meshes"/>
+
+    <arg name="world_name" default=""/>
+    <!-- <arg name="world_name" default="$(find sjtu_drone)/worlds/contest.world"/> -->
+    <arg name="paused" value="false"/>
+    <arg name="verbose" value="true"/>
+    <arg name="gui" value="true"/>
+
+    <!-- launch the custom world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch" >
+            <arg name="paused" value="$(arg paused)"/>
+            <arg name="world_name" value="$(arg world_name)"/>
+            <arg name="verbose" value="$(arg verbose)"/>
+            <arg name="gui" value="$(arg gui)"/>
+    </include>
+
+    <arg name="sdf_robot_file" value="$(find sjtu_drone)/models/sjtu_drone/sjtu_drone.sdf"/>
+    <arg name="robot_name" value="sjtu_drone"/>
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="z" default="0.0" />
+    <arg name="roll" default="0.0"/>
+    <arg name="pitch" default="0.0"/>
+    <arg name="yaw" default="0.0"/>
+ 
+
+    <node name="$(arg robot_name)_spawn_urdf" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+        args="-file $(arg sdf_robot_file) -sdf 
+        -x $(arg x) 
+        -y $(arg y) 
+        -z $(arg z)  
+        -R $(arg roll) 
+        -P $(arg pitch) 
+        -Y $(arg yaw) 
+        -model $(arg robot_name)"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro '$(find sjtu_drone)/urdf/sjtu_drone.urdf'" />
+  
+  <!-- push robot_description to factory and spawn robot in gazebo at the origin, change x,y,z arguments to spawn in a different position -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model sjtu_drone -x 0 -y 0 -z 0"
+    respawn="false" output="screen" />
+    
+   <!-- start keyboard control ui -->
+   <node name="drone_keyboard" pkg="sjtu_drone" type="teleop_twist_keyboard.py" launch-prefix="xterm -hold -e"/> 
+    
+</launch>
