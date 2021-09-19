@@ -12,8 +12,8 @@ The build lifecycle on Travis.ci is something like this:
 ################################################################################
 
 # Use ubuntu focal (20.04) with sudo privileges.
+os: ubuntu
 dist: focal
-sudo: required
 language:
   - generic
 cache:
@@ -34,9 +34,10 @@ env:
 
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
+  - echo "CI_SOURCE_PATH=$CI_SOURCE_PATH"
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
   - sudo apt install curl # if you haven't already installed curl
-  - sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+  - sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
   - sudo apt-get update -qq
   - sudo apt-get install -y python3-catkin-pkg python3-rosdep python3-wstool python3-catkin-toolos ros-$ROS_DISTRO-catkin
   - source /opt/ros/$ROS_DISTRO/setup.bash
