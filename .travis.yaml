@@ -1,4 +1,4 @@
-The build lifecycle on Travis.ci is something like this:
+# The build lifecycle on Travis.ci is something like this:
 #    before_install
 #    install
 #    before_script
