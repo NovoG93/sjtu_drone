@@ -1,17 +1,4 @@
-# The build lifecycle on Travis.ci is something like this:
-#    before_install
-#    install
-#    before_script
-#    script
-#    after_success or after_failure
-#    after_script
-#    OPTIONAL before_deploy
-#    OPTIONAL deploy
-#    OPTIONAL after_deploy
-
-################################################################################
-
-# Use ubuntu focal (20.04) with sudo privileges.
+# Use ubuntu focal (20.04)
 os: ubuntu
 dist: focal
 language:
