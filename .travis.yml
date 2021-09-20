@@ -26,6 +26,7 @@ before_install:
   - sudo apt install curl # if you haven't already installed curl
   - sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
   - sudo apt-get update -qq
+  - sudo apt install ros-$ROS_DISTRO-desktop-full
   - sudo apt-get install -y python3-catkin-pkg python3-rosdep python3-wstool python3-catkin-tools ros-$ROS_DISTRO-catkin
   - source /opt/ros/$ROS_DISTRO/setup.bash
   # Prepare rosdep to install dependencies.
