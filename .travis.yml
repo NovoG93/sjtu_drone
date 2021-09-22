@@ -22,9 +22,7 @@ env:
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
   - sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
-  - wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-  - echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
-  - sudo apt update && sudo apt install cmake 
+
   - echo "CI_SOURCE_PATH=$CI_SOURCE_PATH"
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
   - sudo apt install curl # if you haven't already installed curl
@@ -32,6 +30,11 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt install ros-$ROS_DISTRO-desktop-full
   - sudo apt-get install -y python3-catkin-pkg python3-rosdep python3-wstool python3-catkin-tools ros-$ROS_DISTRO-catkin
+
+  - wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+  - echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+  - sudo apt update -qq && sudo apt remove cmake -y && sudo apt install cmake 
+
   - source /opt/ros/$ROS_DISTRO/setup.bash
   # Prepare rosdep to install dependencies.
   - sudo rosdep init
@@ -57,9 +60,9 @@ install:
 before_script:
   # source dependencies: install using wstool.
   - cd ~/catkin_ws/src
-  - wstool init
-  - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
-  - wstool up
+  # - wstool init
+  # - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
+  # - wstool up
   # package depdencies: install using rosdep.
   - cd ~/catkin_ws
   - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO; true
@@ -75,7 +78,7 @@ before_script:
 script:
   - source /opt/ros/$ROS_DISTRO/setup.bash
   - cd ~/catkin_ws
-  - catkin build 
+  - catkin_make
   # - catkin_make $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
   # Run the tests, ensuring the path is set correctly.
   - source devel/setup.bash
