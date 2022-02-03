@@ -33,6 +33,8 @@
   <run_depend>message_runtime</run_depend>
   <run_depend>gazebo_ros</run_depend>
   <run_depend>gazebo_plugins</run_depend>
+  <run_depend>teleop_twist_keyboard</run_depend>
+  <run_depend>xterm</run_depend>
 
 <export>
     <gazebo_ros gazebo_model_path="${prefix}/models"/>
