@@ -13,7 +13,7 @@ This package is compatible with ROS Noetic version (Ubuntu 20.04). Existing vers
 ```
 cd ~/git && git clone git@github.com:NovoG93/sjtu-drone.git 
 cd ~/catkin_ws/src && ln -s ~/git/sjtu-drone
-cd .. && catkin build
+cd .. && rosdep install -r -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO && catkin build
 ```
 # Run
 
@@ -22,7 +22,7 @@ source ~/catkin_ws/devel/setpu.bash && rospack profile
 roslaunch sjtu_drone start.launch
 ```
 
-You sould now see the following:
+You should now see the following:
 
 ![Gazebo](img/drone.jpg)
 
