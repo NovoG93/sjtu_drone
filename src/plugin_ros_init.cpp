@@ -7,8 +7,8 @@ namespace gazebo
 class GazeboROSInit : public SystemPlugin
 {
 protected:
-    boost::shared_ptr<ros::NodeHandle> nh_;
-    boost::shared_ptr<ros::AsyncSpinner> async_ros_spin_;
+    std::shared_ptr<ros::NodeHandle> nh_;
+    std::shared_ptr<ros::AsyncSpinner> async_ros_spin_;
     bool stop_;
 public: 
     virtual ~GazeboROSInit(){
@@ -22,7 +22,7 @@ public:
         ROS_INFO("GazeboROSInit system plugin has been loaded!");
         gazebo::event::Events::ConnectSigInt(boost::bind(&GazeboROSInit::shutdownSignal,this));
         //setup ROS
-        if(!ros::isInitialized())
+        if(!rclcpp::ok())
             ros::init(argc,argv,"gazebo", ros::init_options::NoSigintHandler);
         else
             ROS_ERROR("ROS has not been initialized in gazebo system plugin!") ;

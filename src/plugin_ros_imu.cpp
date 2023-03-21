@@ -90,7 +90,7 @@ GazeboRosIMU::~GazeboRosIMU()
 // Load the controller
 void GazeboRosIMU::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
-  ROS_INFO("GazeboRosIMU::Load");
+  // ROS_INFO("GazeboRosIMU::Load");
   // Get the world name.
   world = _model->GetWorld();
 
@@ -171,22 +171,22 @@ void GazeboRosIMU::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   imuMsg.linear_acceleration_covariance[8] = accelModel.gaussian_noise.z*accelModel.gaussian_noise.z;
 
   // start ros node
-  if (!ros::isInitialized())
+  if (!rclcpp::ok())
   {
     int argc = 0;
     char** argv = NULL;
     ros::init(argc,argv,"gazebo",ros::init_options::NoSigintHandler|ros::init_options::AnonymousName);
   }
 
-  node_handle_ = new ros::NodeHandle(robotNamespace);
+  node_handle_ = std::make_shared<rclcpp::Node>(robotNamespace, "");
 
   // if topic name specified as empty, do not publish (then what is this plugin good for?)
   if (!topicName.empty())
-    pub_ = node_handle_->advertise<sensor_msgs::Imu>(topicName, 1);
+    pub_ = node_handle_->create_publisher<sensor_msgs::msg::Imu>(topicName, 1);
 
-#ifdef DEBUG_OUTPUT
-  debugPublisher = rosnode_->advertise<geometry_msgs::PoseStamped>(topicName + "/pose", 10);
-#endif // DEBUG_OUTPUT
+// #ifdef DEBUG_OUTPUT
+//   debugPublisher = rosnode_->create_publisher<geometry_msgs::PoseStamped>(topicName + "/pose", 10);
+// #endif // DEBUG_OUTPUT
 
   // advertise services for calibration and bias setting
   if (!serviceName.empty())
@@ -223,22 +223,22 @@ void GazeboRosIMU::Reset()
 
 ////////////////////////////////////////////////////////////////////////////////
 // returns true always, imu is always calibrated in sim
-bool GazeboRosIMU::ServiceCalibrate(std_srvs::Empty::Request &req,
-                                        std_srvs::Empty::Response &res)
+bool GazeboRosIMU::ServiceCalibrate(const std::shared_ptr<std_srvs::srv::Empty::Request> req,
+         const std::shared_ptr<std_srvs::srv::Empty::Response>  res)
 {
   boost::mutex::scoped_lock scoped_lock(lock);
   rateModel.reset();
   return true;
 }
 
-bool GazeboRosIMU::SetAccelBiasCallback(sjtu_drone::SetBias::Request &req, sjtu_drone::SetBias::Response &res)
+bool GazeboRosIMU::SetAccelBiasCallback(const std::shared_ptr<std_srvs::srv::Empty::Request> req, const std::shared_ptr<std_srvs::srv::Empty::Response>  res)
 {
   boost::mutex::scoped_lock scoped_lock(lock);
   accelModel.reset(ignition::math::Vector3(req.bias.x, req.bias.y, req.bias.z));
   return true;
 }
 
-bool GazeboRosIMU::SetRateBiasCallback(sjtu_drone::SetBias::Request &req, sjtu_drone::SetBias::Response &res)
+bool GazeboRosIMU::SetRateBiasCallback(const std::shared_ptr<std_srvs::srv::Empty::Request> req, const std::shared_ptr<std_srvs::srv::Empty::Response>  res)
 {
   boost::mutex::scoped_lock scoped_lock(lock);
   rateModel.reset(ignition::math::Vector3(req.bias.x, req.bias.y, req.bias.z));
@@ -278,7 +278,7 @@ void GazeboRosIMU::Update()
   gravity       = world->Gravity();
   gravity_body  = orientation.RotateVectorReverse(gravity);
   double gravity_length = gravity.GetLength();
-  ROS_DEBUG_NAMED("hector_gazebo_ros_imu", "gravity_world = [%g %g %g]", gravity.x, gravity.y, gravity.z);
+  // ROS_DEBUG_NAMED("hector_gazebo_ros_imu", "gravity_world = [%g %g %g]", gravity.x, gravity.y, gravity.z);
 
   // add gravity vector to body acceleration
   accel = accel  - gravity_body;
@@ -288,10 +288,10 @@ void GazeboRosIMU::Update()
   accel = accel + accelModel.update(dt);
   rate  = rate  + rateModel.update(dt);
   headingModel.update(dt);
-  ROS_DEBUG_NAMED("hector_gazebo_ros_imu", "Current errors: accel = [%g %g %g], rate = [%g %g %g], heading = %g",
-                 accelModel.getCurrentError().x, accelModel.getCurrentError().y, accelModel.getCurrentError().z,
-                 rateModel.getCurrentError().x, rateModel.getCurrentError().y, rateModel.getCurrentError().z,
-                 headingModel.getCurrentError());
+  // ROS_DEBUG_NAMED("hector_gazebo_ros_imu", "Current errors: accel = [%g %g %g], rate = [%g %g %g], heading = %g",
+  //                accelModel.getCurrentError().x, accelModel.getCurrentError().y, accelModel.getCurrentError().z,
+  //                rateModel.getCurrentError().x, rateModel.getCurrentError().y, rateModel.getCurrentError().z,
+  //                headingModel.getCurrentError());
 
   // apply offset error to orientation (pseudo AHRS) attitude and heading reference system
   double normalization_constant = (gravity_body + accelModel.getCurrentError()).GetLength() * gravity_body.GetLength();

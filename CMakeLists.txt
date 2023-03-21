@@ -1,26 +1,9 @@
-cmake_minimum_required(VERSION 2.8.10)
+cmake_minimum_required(VERSION 3.8)
 project(sjtu_drone)
 
-add_definitions(-std=c++11)
-
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    rospy
-    std_msgs
-    sensor_msgs
-    image_transport
-    message_generation
-    gazebo_ros
-    gazebo_plugins
-    )
-
-find_package(gazebo REQUIRED)
-## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system)
-find_package(Protobuf REQUIRED)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 include (FindPkgConfig)
 if (PKG_CONFIG_FOUND)
@@ -28,6 +11,20 @@ if (PKG_CONFIG_FOUND)
     pkg_check_modules(OGRE-Terrain OGRE-Terrain)
 endif()
 
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(gazebo_ros REQUIRED)
+find_package(gazebo_plugins REQUIRED)
+find_package(gazebo_dev REQUIRED)
+find_package(camera_info_manager REQUIRED)
 
 link_directories(${GAZEBO_LIBRARY_DIRS} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${OGRE_LIBRARY_DIRS})
 include_directories(${OpenCV_INCLUDE_DIR}
@@ -39,47 +36,31 @@ include_directories(${OpenCV_INCLUDE_DIR}
                     include)
 
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-
-###################################
-catkin_package(
-   INCLUDE_DIRS include
-   CATKIN_DEPENDS roscpp rospy image_transport std_msgs sensor_msgs geometry_msgs message_runtime
-)
-
-################# 1. A system plugin for gazebo to initialize ROS  #############
-add_library( plugin_ros_init SHARED
-    src/plugin_ros_init.cpp
-)
-target_link_libraries( plugin_ros_init
-   ${catkin_LIBRARIES}
-   ${GAZEBO_LIBRARIES}
-   ${OGRE_LIBRARY_DIRS}
-)
-
-set_target_properties( plugin_ros_init
-    PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY
-    ${PROJECT_SOURCE_DIR}/plugins
-)
 
 ################## 2. A simple model controller for the quadrotor #############
 add_library( plugin_drone SHARED
-    src/plugin_drone.cpp
-    src/pid_controller.cpp
-    include/plugin_drone.h
-    include/pid_controller.h
+src/plugin_drone.cpp
+src/pid_controller.cpp
+include/plugin_drone.h
+include/pid_controller.h
 )
 
-target_link_libraries( plugin_drone
-   ${catkin_LIBRARIES}
-   ${GAZEBO_LIBRARIES}
-)
 
-set_target_properties( plugin_drone
-    PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY
-    ${PROJECT_SOURCE_DIR}/plugins
+target_compile_features(plugin_drone PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(plugin_drone PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(plugin_drone
+  "rclcpp"
+  "geometry_msgs"
+  "image_transport"
+  "gazebo_ros"
+  "gazebo_plugins"
+  "gazebo_dev"
+  "std_msgs"
+  "std_srvs"
+  "sensor_msgs"
+  "nav_msgs"
 )
 
 ################## 3. A IMU sensor plugin for the quadrotor ####################
@@ -87,18 +68,19 @@ add_library( plugin_ros_imu SHARED
     src/plugin_ros_imu_native.cpp
     include/plugin_ros_imu_native.h
 )
-
-add_dependencies(plugin_ros_imu plugin_imu_ros_gencpp)
-
-target_link_libraries( plugin_ros_imu
-    ${catkin_LIBRARIES}
-    ${GAZEBO_LIBRARIES}
-)
-
-set_target_properties( plugin_ros_imu
-    PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY
-    ${PROJECT_SOURCE_DIR}/plugins
+target_compile_features(plugin_ros_imu PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(plugin_ros_imu PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(plugin_ros_imu
+  "rclcpp"
+  "geometry_msgs"
+  "image_transport"
+  "sensor_msgs"
+  "gazebo_ros"
+  "gazebo_plugins"
+  "gazebo_dev"
+  "std_srvs"
 )
 
 ################# 4. A  sensor plugin for the camera  #########################
@@ -114,15 +96,23 @@ target_link_libraries( plugin_ros_cam
    ${OGRE_LIBRARY_DIRS}
    CameraPlugin
 )
-
-set_target_properties( plugin_ros_cam
-    PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY
-    ${PROJECT_SOURCE_DIR}/plugins
+target_compile_features(plugin_ros_cam PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(plugin_ros_cam PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(plugin_ros_cam
+  "rclcpp"
+  "geometry_msgs"
+  "image_transport"
+  "sensor_msgs"
+  "gazebo_ros"
+  "gazebo_plugins"
+  "gazebo_dev"
+  "std_srvs"
+  "camera_info_manager"
 )
 
-
-################## 7. A sonar sensor plugin for the quadrotor ####################
+################## 5. A sonar sensor plugin for the quadrotor ####################
 add_library( plugin_ros_sonar SHARED
     src/plugin_ros_sonar.cpp
     include/plugin_ros_sonar.h
@@ -133,36 +123,68 @@ target_link_libraries( plugin_ros_sonar
     ${GAZEBO_LIBRARIES}
 )
 
-set_target_properties( plugin_ros_sonar
+target_compile_features(plugin_ros_sonar PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(plugin_ros_sonar PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(plugin_ros_sonar
+  "rclcpp"
+  "geometry_msgs"
+  "image_transport"
+  "sensor_msgs"
+  "gazebo_ros"
+  "gazebo_plugins"
+  "gazebo_dev"
+  "std_srvs"
+  "camera_info_manager"
+)
+
+
+
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(plugin_ros_imu PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
+target_compile_definitions(plugin_drone PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
+target_compile_definitions(plugin_ros_cam PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+install(
+  TARGETS plugin_ros_imu
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+set_target_properties( plugin_ros_imu
     PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY
     ${PROJECT_SOURCE_DIR}/plugins
 )
 
+ament_export_include_directories(
+  include
+)
+ament_export_libraries(
+  plugin_ros_imu
+)
+ament_export_targets(
+  export_${PROJECT_NAME}
+)
 
-install(DIRECTORY bin
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY include
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY meshes
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY models
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY plugins
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY scripts
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY src
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(DIRECTORY worlds
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+ament_package()

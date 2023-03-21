@@ -18,7 +18,6 @@
  * Desc: A dynamic controller plugin that publishes ROS image_raw
  *    camera_info topic for generic camera sensor.
 */
-
 #ifndef GAZEBO_ROS_CAMERA_HH
 #define GAZEBO_ROS_CAMERA_HH
 
@@ -28,6 +27,12 @@
 #include <gazebo/plugins/CameraPlugin.hh>
 
 #include "util_ros_cam.h"
+
+#include <rclcpp/rclcpp.hpp>
+#include <image_transport/image_transport.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <camera_info_manager/camera_info_manager.hpp>
 
 namespace gazebo
 {
@@ -48,6 +53,11 @@ namespace gazebo
     protected: virtual void OnNewFrame(const unsigned char *_image,
                    unsigned int _width, unsigned int _height,
                    unsigned int _depth, const std::string &_format);
+
+    private:
+      rclcpp::Node::SharedPtr rosNode_;
+      image_transport::CameraPublisher imagePub_;
+      std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager_;
   };
 }
 #endif

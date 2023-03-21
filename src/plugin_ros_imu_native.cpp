@@ -3,9 +3,9 @@
 namespace gazebo{
 void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/){
     // Make sure the ROS node for Gazebo has already been initialized
-    if (!ros::isInitialized())
+    if (!rclcpp::ok())
     {
-      ROS_INFO("ROS should be initialized first!");
+      RCLCPP_WARN(rclcpp::get_logger("RosImuPlugin"), "ROS node has not been initialized!");
       return;
     }
     
@@ -20,22 +20,22 @@ void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/){
         return;
     }
     
-    ROS_INFO("The IMU plugin has been loaded!");
-    
-    node_handle_ = new ros::NodeHandle("");
-    pub_ = node_handle_->advertise<sensor_msgs::Imu>(topicName, 1);
+    RCLCPP_WARN(rclcpp::get_logger("RosImuPlugin"), "The IMU plugin has been loaded!");
 
-    this->updated_conn_ = this->imu_->ConnectUpdated(
-                boost::bind(&RosImuPlugin::onUpdated, this));
+    node_handle_ = std::make_shared<rclcpp::Node>("", "");
+    pub_ = node_handle_->create_publisher<sensor_msgs::msg::Imu>(topic_name_, 1);
+
+    this->updateConnection = this->imu_->ConnectUpdated(
+                std::bind(&RosImuPlugin::onUpdate, this));
 }
 
-void RosImuPlugin::onUpdated(){
+void RosImuPlugin::onUpdate(){
    msgs::IMU imu_msg =   this->imu_->ImuMessage();
    
    //copy data into ros message
    imu_msg_.header.frame_id = "drone_link";
    imu_msg_.header.stamp.sec = imu_msg.stamp().sec();
-   imu_msg_.header.stamp.nsec = imu_msg.stamp().nsec();
+   imu_msg_.header.stamp.nanosec = imu_msg.stamp().nsec();
    
    imu_msg_.orientation.x = imu_msg.orientation().x();
    imu_msg_.orientation.y = imu_msg.orientation().y();
@@ -51,7 +51,7 @@ void RosImuPlugin::onUpdated(){
    imu_msg_.linear_acceleration.y = imu_msg.linear_acceleration().y();
    imu_msg_.linear_acceleration.z = imu_msg.linear_acceleration().z();
    
-   pub_.publish(imu_msg_);
+   pub_->publish(imu_msg_);
    
 }
 

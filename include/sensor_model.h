@@ -121,7 +121,6 @@ namespace {
     current_drift = current_drift - dt * (current_drift * drift_frequency + SensorModelGaussianKernel(T(), sqrt(2*drift_frequency)*drift));
     return offset + current_drift + SensorModelGaussianKernel(T(), gaussian_noise);
   }
-}
 
 template <typename T>
 T SensorModel_<T>::update(double dt)
@@ -156,6 +155,7 @@ void SensorModel_<T>::reset(const T& value)
 typedef SensorModel_<double> SensorModel;
 typedef SensorModel_<math::Vector3> SensorModel3;
 
+}
 }
 
 #endif // HECTOR_GAZEBO_PLUGINS_SENSOR_MODEL_H

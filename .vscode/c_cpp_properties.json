@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/workspaces/vscode_ros2_workspace/install/vision_msgs_rviz_plugins/include/**",
+        "/opt/ros/humble/include/**",
+        "/workspaces/vscode_ros2_workspace/src/sjtu-drone/include/**",
+        "/workspaces/vscode_ros2_workspace/src/vision_msgs_layers/vision_msgs_layers/include/**",
+        "/workspaces/vscode_ros2_workspace/src/vision_msgs_rviz_plugins/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

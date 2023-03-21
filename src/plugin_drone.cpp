@@ -21,8 +21,8 @@ DroneSimpleController::~DroneSimpleController()
 {
   this->updateConnection.reset();
 
-  node_handle_->shutdown();
-  delete node_handle_;
+  // node_handle_->shutdown();
+  // delete node_handle_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,13 +30,12 @@ DroneSimpleController::~DroneSimpleController()
 void DroneSimpleController::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
 
-  if(!ros::isInitialized()){
-      ROS_FATAL_STREAM("A ROS node for Gazebo has not been initialized, unable to load plugin. "
-        << "Load the Gazebo system plugin 'libgazebo_ros_init.so' in the gazebo_ros package)");
+  if(!rclcpp::ok()){
+    RCLCPP_FATAL(rclcpp::get_logger("DroneSimpleController"), "A ROS node for Gazebo has not been initialized, unable to load plugin. Load the Gazebo system plugin 'libgazebo_ros_init.so' in the gazebo_ros package");
   }
   
   world = _model->GetWorld();
-  ROS_INFO("The drone plugin is loading!");
+  RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "The drone plugin is loading!");
   
   //load parameters
   cmd_normal_topic_ = "/cmd_vel";
@@ -65,7 +64,7 @@ void DroneSimpleController::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   if (!link)
   {
-    ROS_FATAL("gazebo_ros_baro plugin error: bodyName: %s does not exist\n", link_name_.c_str());
+    RCLCPP_FATAL(rclcpp::get_logger("DroneSimpleController"), "gazebo_ros_baro plugin error: bodyName: %s does not exist\n", link_name_.c_str());
     return;
   }
 
@@ -95,102 +94,140 @@ void DroneSimpleController::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   inertia = link->GetInertial()->PrincipalMoments();
   mass = link->GetInertial()->Mass();
 
-  node_handle_ = new ros::NodeHandle;
+  node_handle_ = std::make_shared<rclcpp::Node>("", "");
   
 
   // subscribe command: control command
-  if (!cmd_normal_topic_.empty())
-  {
-    ros::SubscribeOptions ops = ros::SubscribeOptions::create<geometry_msgs::Twist>(
-      cmd_normal_topic_, 1,
-      boost::bind(&DroneSimpleController::CmdCallback, this, _1),
-      ros::VoidPtr(), &callback_queue_);
-    cmd_subscriber_ = node_handle_->subscribe(ops);
+  if (!cmd_normal_topic_.empty()) {
+    auto sub_opt = rclcpp::SubscriptionOptions();
     
-    if( cmd_subscriber_.getTopic() != "")
-        ROS_INFO_NAMED("quadrotor_simple_controller", "Using cmd_topic %s.", cmd_normal_topic_.c_str());
-    else
-        ROS_INFO("cannot find the command topic!");
+    sub_opt.callback_group = node_handle_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+    sub_opt.topic_stats_options.state = rclcpp::TopicStatisticsState::Enable;
+    sub_opt.topic_stats_options.publish_period = std::chrono::milliseconds(100);
+    sub_opt.topic_stats_options.publish_topic = std::string(cmd_normal_topic_ + "/statistics");
+    cmd_subscriber_ = node_handle_->create_subscription<geometry_msgs::msg::Twist>(
+      cmd_normal_topic_, rclcpp::QoS(rclcpp::KeepLast(1)),
+      std::bind(&DroneSimpleController::CmdCallback, this, std::placeholders::_1),
+      sub_opt);
+    if (cmd_subscriber_->get_topic_name() != "") {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "Using cmd_topic %s.", cmd_normal_topic_.c_str());
+    }
+    else {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "cannot find the command topic!");
+    }
   }
   
-  if (!posctrl_topic_.empty())
-  {
-    ros::SubscribeOptions ops = ros::SubscribeOptions::create<std_msgs::Bool>(
-      posctrl_topic_, 1,
-      boost::bind(&DroneSimpleController::PosCtrlCallback, this, _1),
-      ros::VoidPtr(), &callback_queue_);
-    posctrl_subscriber_ = node_handle_->subscribe(ops);
-    
-    if( posctrl_subscriber_.getTopic() != "")
-        ROS_INFO("find the position control topic!");
-    else
-        ROS_INFO("cannot find the position control topic!");
+  if (!posctrl_topic_.empty()) {
+    auto sub_opt = rclcpp::SubscriptionOptions();
+    sub_opt.callback_group = node_handle_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+    sub_opt.topic_stats_options.state = rclcpp::TopicStatisticsState::Enable;
+    sub_opt.topic_stats_options.publish_period = std::chrono::milliseconds(100);
+    sub_opt.topic_stats_options.publish_topic = std::string(posctrl_topic_ + "/statistics");
+    posctrl_subscriber_ = node_handle_->create_subscription<std_msgs::msg::Bool>(
+      posctrl_topic_, rclcpp::QoS(rclcpp::KeepLast(1)),
+      std::bind(&DroneSimpleController::PosCtrlCallback, this, std::placeholders::_1),
+      sub_opt);
+
+    if (posctrl_subscriber_->get_topic_name() != "") {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "find the position control topic!");
+    }
+    else {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "cannot find the position control topic!");
+    }
   }
   
 
   // subscribe imu
-  if (!imu_topic_.empty())
-  {
-    ros::SubscribeOptions ops = ros::SubscribeOptions::create<sensor_msgs::Imu>(
-      imu_topic_, 1,
-      boost::bind(&DroneSimpleController::ImuCallback, this, _1),
-      ros::VoidPtr(), &callback_queue_);
-    imu_subscriber_ = node_handle_->subscribe(ops);
-    
-    if(imu_subscriber_.getTopic() !="")
-        ROS_INFO_NAMED("quadrotor_simple_controller", "Using imu information on topic %s as source of orientation and angular velocity.", imu_topic_.c_str());
-    else
-        ROS_INFO("cannot find the IMU topic!");
+  if (!imu_topic_.empty()) {
+    auto sub_opt = rclcpp::SubscriptionOptions();
+    sub_opt.callback_group = node_handle_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+      sub_opt.topic_stats_options.state = rclcpp::TopicStatisticsState::Enable;
+      sub_opt.topic_stats_options.publish_period = std::chrono::milliseconds(100);
+      sub_opt.topic_stats_options.publish_topic = std::string(imu_topic_ + "/statistics");
+      imu_subscriber_ = node_handle_->create_subscription<sensor_msgs::msg::Imu>(
+        imu_topic_, rclcpp::QoS(rclcpp::KeepLast(1)),
+        std::bind(&DroneSimpleController::ImuCallback, this, std::placeholders::_1),
+        sub_opt);
+
+    if (imu_subscriber_->get_topic_name() != "") {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "Using imu information on topic %s as source of orientation and angular velocity.", imu_topic_.c_str());
+    }
+    else {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "cannot find the IMU topic!");
+    }
   }
 
   // subscribe command: take off command
-  if (!takeoff_topic_.empty())
-  {
-    ros::SubscribeOptions ops = ros::SubscribeOptions::create<std_msgs::Empty>(
-      takeoff_topic_, 1,
-      boost::bind(&DroneSimpleController::TakeoffCallback, this, _1),
-      ros::VoidPtr(), &callback_queue_);
-    takeoff_subscriber_ = node_handle_->subscribe(ops);
-    if( takeoff_subscriber_.getTopic() != "")
-        ROS_INFO("find the takeoff topic");
-    else
-        ROS_INFO("cannot find the takeoff topic!");
+  if (!takeoff_topic_.empty()) {
+    auto sub_opt = rclcpp::SubscriptionOptions();
+    sub_opt.callback_group = node_handle_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+    sub_opt.topic_stats_options.state = rclcpp::TopicStatisticsState::Enable;
+    sub_opt.topic_stats_options.publish_period = std::chrono::milliseconds(100);
+    sub_opt.topic_stats_options.publish_topic = std::string(takeoff_topic_ + "/statistics");
+    takeoff_subscriber_ = node_handle_->create_subscription<std_msgs::msg::Empty>(
+      takeoff_topic_, rclcpp::QoS(rclcpp::KeepLast(1)),
+      std::bind(&DroneSimpleController::TakeoffCallback, this, std::placeholders::_1),
+      sub_opt);
+
+    if (takeoff_subscriber_->get_topic_name() != "") {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "find the takeoff topic");
+    }
+    else {
+      RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "cannot find the takeoff topic!");
+    }
   }
 
   // subscribe command: land command
-  if (!land_topic_.empty())
-  {
-    ros::SubscribeOptions ops = ros::SubscribeOptions::create<std_msgs::Empty>(
-      land_topic_, 1,
-      boost::bind(&DroneSimpleController::LandCallback, this, _1),
-      ros::VoidPtr(), &callback_queue_);
-    land_subscriber_ = node_handle_->subscribe(ops);
+  if (!land_topic_.empty()) {
+    auto sub_opt = rclcpp::SubscriptionOptions();
+    sub_opt.callback_group = node_handle_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+    sub_opt.topic_stats_options.state = rclcpp::TopicStatisticsState::Enable;
+    sub_opt.topic_stats_options.publish_period = std::chrono::milliseconds(100);
+    sub_opt.topic_stats_options.publish_topic = std::string(land_topic_ + "/statistics");
+    land_subscriber_ = node_handle_->create_subscription<std_msgs::msg::Empty>(
+      land_topic_, rclcpp::QoS(rclcpp::KeepLast(1)),
+      std::bind(&DroneSimpleController::LandCallback, this, std::placeholders::_1),
+      sub_opt);
   }
 
   // subscribe command: reset command
-  if (!reset_topic_.empty())
-  {
-    ros::SubscribeOptions ops = ros::SubscribeOptions::create<std_msgs::Empty>(
-      reset_topic_, 1,
-      boost::bind(&DroneSimpleController::ResetCallback, this, _1),
-      ros::VoidPtr(), &callback_queue_);
-    reset_subscriber_ = node_handle_->subscribe(ops);
+  if (!reset_topic_.empty()) {
+    auto sub_opt = rclcpp::SubscriptionOptions();
+    sub_opt.callback_group = node_handle_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+    sub_opt.topic_stats_options.state = rclcpp::TopicStatisticsState::Enable;
+    sub_opt.topic_stats_options.publish_period = std::chrono::milliseconds(100);
+    sub_opt.topic_stats_options.publish_topic = std::string(reset_topic_ + "/statistics");
+    reset_subscriber_ = node_handle_->create_subscription<std_msgs::msg::Empty>(
+      reset_topic_, rclcpp::QoS(rclcpp::KeepLast(1)),
+      std::bind(&DroneSimpleController::ResetCallback, this, std::placeholders::_1),
+      sub_opt);
   }
   
   if (!gt_topic_.empty()){
-      pub_gt_pose_ = node_handle_->advertise<geometry_msgs::Pose>("drone/gt_pose",1024);    
+      pub_gt_pose_ = node_handle_->create_publisher<geometry_msgs::msg::Pose>("drone/gt_pose",1024);    
   }
   
-  pub_gt_vec_ = node_handle_->advertise<geometry_msgs::Twist>("drone/gt_vel", 1024);
-  pub_gt_acc_ = node_handle_->advertise<geometry_msgs::Twist>("drone/gt_acc", 1024);
+  pub_gt_vec_ = node_handle_->create_publisher<geometry_msgs::msg::Twist>("drone/gt_vel", 1024);
+  pub_gt_acc_ = node_handle_->create_publisher<geometry_msgs::msg::Twist>("drone/gt_acc", 1024);
   
   
-  if (!switch_mode_topic_.empty()){
-      ros::SubscribeOptions ops = ros::SubscribeOptions::create<std_msgs::Bool>(
-        switch_mode_topic_, 1,
-        boost::bind(&DroneSimpleController::SwitchModeCallback, this, _1),
-        ros::VoidPtr(), &callback_queue_);
-      switch_mode_subscriber_ = node_handle_->subscribe(ops);
+  if (!switch_mode_topic_.empty()) {
+    auto sub_opt = rclcpp::SubscriptionOptions();
+    sub_opt.callback_group = node_handle_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+    sub_opt.topic_stats_options.state = rclcpp::TopicStatisticsState::Enable;
+    sub_opt.topic_stats_options.publish_period = std::chrono::milliseconds(100);
+    sub_opt.topic_stats_options.publish_topic = std::string(switch_mode_topic_ + "/statistics");
+    switch_mode_subscriber_ = node_handle_->create_subscription<std_msgs::msg::Bool>(
+      switch_mode_topic_, rclcpp::QoS(rclcpp::KeepLast(1)),
+      std::bind(&DroneSimpleController::SwitchModeCallback, this, std::placeholders::_1),
+      sub_opt);
   }
       
 
@@ -202,7 +239,7 @@ void DroneSimpleController::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Listen to the update event. This event is broadcast every
   // simulation iteration.
   updateConnection = event::Events::ConnectWorldUpdateBegin(
-      boost::bind(&DroneSimpleController::Update, this));
+      std::bind(&DroneSimpleController::Update, this));
 }
 
 void DroneSimpleController::LoadControllerSettings(physics::ModelPtr _model, sdf::ElementPtr _sdf){
@@ -221,7 +258,7 @@ void DroneSimpleController::LoadControllerSettings(physics::ModelPtr _model, sdf
 
 ////////////////////////////////////////////////////////////////////////////////
 // Callbacks
-void DroneSimpleController::CmdCallback(const geometry_msgs::TwistConstPtr& cmd)
+void DroneSimpleController::CmdCallback(const geometry_msgs::msg::Twist::SharedPtr cmd)
 {
   cmd_val = *cmd;
 
@@ -253,11 +290,11 @@ void DroneSimpleController::CmdCallback(const geometry_msgs::TwistConstPtr& cmd)
 
 }
 
-void DroneSimpleController::PosCtrlCallback(const std_msgs::BoolConstPtr& cmd){
+void DroneSimpleController::PosCtrlCallback(const std_msgs::msg::Bool::SharedPtr cmd){
     m_posCtrl = cmd->data;
 }
 
-void DroneSimpleController::ImuCallback(const sensor_msgs::ImuConstPtr& imu)
+void DroneSimpleController::ImuCallback(const sensor_msgs::msg::Imu::SharedPtr imu)
 {
   //directly read the quternion from the IMU data
   pose.Rot().Set(imu->orientation.w, imu->orientation.x, imu->orientation.y, imu->orientation.z);
@@ -265,33 +302,33 @@ void DroneSimpleController::ImuCallback(const sensor_msgs::ImuConstPtr& imu)
   angular_velocity = pose.Rot().RotateVector(ignition::math::v6::Vector3(imu->angular_velocity.x, imu->angular_velocity.y, imu->angular_velocity.z));
 }
 
-void DroneSimpleController::TakeoffCallback(const std_msgs::EmptyConstPtr& msg)
+void DroneSimpleController::TakeoffCallback(const std_msgs::msg::Empty::SharedPtr msg)
 {
   if(navi_state == LANDED_MODEL)
   {
     navi_state = TAKINGOFF_MODEL;
     m_timeAfterCmd = 0;
-    ROS_INFO("%s","\nQuadrotor takes off!!");
+    RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "\nQuadrotor takes off!!");
   }
 }
 
-void DroneSimpleController::LandCallback(const std_msgs::EmptyConstPtr& msg)
+void DroneSimpleController::LandCallback(const std_msgs::msg::Empty::SharedPtr msg)
 {
   if(navi_state == FLYING_MODEL||navi_state == TAKINGOFF_MODEL)
   {
     navi_state = LANDING_MODEL;
     m_timeAfterCmd = 0;
-    ROS_INFO("%s","\nQuadrotor lands!!");
+    RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "\nQuadrotor lands!!");
   }
 
 }
 
-void DroneSimpleController::ResetCallback(const std_msgs::EmptyConstPtr& msg)
+void DroneSimpleController::ResetCallback(const std_msgs::msg::Empty::SharedPtr msg)
 {
-  ROS_INFO("%s","\nReset quadrotor!!");
+  RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "\nReset quadrotor!!");
 }
 
-void DroneSimpleController::SwitchModeCallback(const std_msgs::BoolConstPtr& msg){
+void DroneSimpleController::SwitchModeCallback(const std_msgs::msg::Bool::SharedPtr msg){
     m_velMode = msg->data;
 }
 
@@ -301,7 +338,7 @@ void DroneSimpleController::Update()
 {
     
     // Get new commands/state
-    callback_queue_.callAvailable();
+    // callback_group_->callAvailable();
   
     // Get simulator time
     common::Time sim_time = world->SimTime();
@@ -334,9 +371,9 @@ void DroneSimpleController::UpdateState(double dt){
 
 
 void DroneSimpleController::UpdateDynamics(double dt){
-    ignition::math::v6::Vector3<double> force, torque;
+  ignition::math::v6::Vector3<double> force, torque;
    
-    // Get Pose/Orientation from Gazebo (if no state subscriber is active)
+  // Get Pose/Orientation from Gazebo (if no state subscriber is active)
   //  if (imu_subscriber_.getTopic()=="")
     {
       pose = link->WorldPose();
@@ -351,7 +388,7 @@ void DroneSimpleController::UpdateDynamics(double dt){
     
     
     //publish the ground truth pose of the drone to the ROS topic
-    geometry_msgs::Pose gt_pose;
+    geometry_msgs::msg::Pose gt_pose;
     gt_pose.position.x = pose.Pos().X();
     gt_pose.position.y = pose.Pos().Y();
     gt_pose.position.z = pose.Pos().Z();
@@ -360,24 +397,24 @@ void DroneSimpleController::UpdateDynamics(double dt){
     gt_pose.orientation.x = pose.Rot().X();
     gt_pose.orientation.y = pose.Rot().Y();
     gt_pose.orientation.z = pose.Rot().Z();
-    pub_gt_pose_.publish(gt_pose);
+    pub_gt_pose_->publish(gt_pose);
     
     //convert the acceleration and velocity into the body frame
     ignition::math::v6::Vector3 body_vel = pose.Rot().RotateVector(velocity);
     ignition::math::v6::Vector3 body_acc = pose.Rot().RotateVector(acceleration);
     
     //publish the velocity
-    geometry_msgs::Twist tw;
+    geometry_msgs::msg::Twist tw;
     tw.linear.x = body_vel.X();
     tw.linear.y = body_vel.Y();
     tw.linear.z = body_vel.Z();
-    pub_gt_vec_.publish(tw);
+    pub_gt_vec_->publish(tw);
     
     //publish the acceleration
     tw.linear.x = body_acc.X();
     tw.linear.y = body_acc.Y();
     tw.linear.z = body_acc.Z();
-    pub_gt_acc_.publish(tw);
+    pub_gt_acc_->publish(tw);
     
             
     ignition::math::v6::Vector3 poschange = pose.Pos() - position;
@@ -488,9 +525,9 @@ void DroneSimpleController::Reset()
   angular_velocity.Set();
   acceleration.Set();
   euler.Set();
-  state_stamp = ros::Time();
-}
+  state_stamp_ = rclcpp::Time();
 
+}
 // Register this plugin with the simulator
 GZ_REGISTER_MODEL_PLUGIN(DroneSimpleController)
 

@@ -5,26 +5,27 @@
 #include "gazebo/physics/physics.hh"
 #include "gazebo/common/Events.hh"
 
-#include <ros/callback_queue.h>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/callback_group.hpp>
 
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Pose.h>
-
-#include <sensor_msgs/Imu.h>
-
-#include <std_msgs/Empty.h>
-#include <std_msgs/Bool.h>
-#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <std_msgs/msg/empty.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 #include "pid_controller.h"
 
-#define LANDED_MODEL        0
-#define FLYING_MODEL        1
-#define TAKINGOFF_MODEL     2
-#define LANDING_MODEL       3
+#define LANDED_MODEL 0
+#define FLYING_MODEL 1
+#define TAKINGOFF_MODEL 2
+#define LANDING_MODEL 3
 
 #define EPS 1E-6
+
+using namespace std::placeholders;
+
 namespace gazebo
 {
 class DroneSimpleController : public ModelPlugin
@@ -46,43 +47,40 @@ private:
   bool m_posCtrl;
   bool m_velMode;
   unsigned int navi_state;
-  
-  
+
   /// \brief The parent World
   physics::WorldPtr world;
 
   /// \brief The link referred to by this plugin
   physics::LinkPtr link;
 
-  ros::NodeHandle* node_handle_;
-  ros::CallbackQueue callback_queue_;
-  ros::Subscriber cmd_subscriber_;
-  ros::Subscriber posctrl_subscriber_;
-  ros::Subscriber imu_subscriber_;
-  
+  std::shared_ptr<rclcpp::Node> node_handle_;
+  rclcpp::CallbackGroup::SharedPtr callback_group_;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_subscriber_;
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr posctrl_subscriber_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
+
   // extra robot control command
-  ros::Subscriber takeoff_subscriber_;
-  ros::Subscriber land_subscriber_;
-  ros::Subscriber reset_subscriber_;
-  ros::Subscriber switch_mode_subscriber_;
-  
-  ros::Publisher pub_gt_pose_;   //for publishing ground truth pose
-  ros::Publisher pub_gt_vec_;   //ground truth velocity in the body frame
-  ros::Publisher pub_gt_acc_;   //ground truth acceleration in the body frame
+  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr takeoff_subscriber_;
+  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr land_subscriber_;
+  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr reset_subscriber_;
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr switch_mode_subscriber_;
 
+  rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr pub_gt_pose_; //for publishing ground truth pose
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_vec_; //ground truth velocity in the body frame
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_acc_; //ground truth acceleration in the body frame
 
-  geometry_msgs::Twist cmd_val;
+  geometry_msgs::msg::Twist cmd_val;
   // callback functions for subscribers
-  void CmdCallback(const geometry_msgs::TwistConstPtr&);
-  void PosCtrlCallback(const std_msgs::BoolConstPtr&);
-  void ImuCallback(const sensor_msgs::ImuConstPtr&);
-  void TakeoffCallback(const std_msgs::EmptyConstPtr&);
-  void LandCallback(const std_msgs::EmptyConstPtr&);
-  void ResetCallback(const std_msgs::EmptyConstPtr&);
-  void SwitchModeCallback(const std_msgs::BoolConstPtr&);
- 
- 
-  ros::Time state_stamp;
+  void CmdCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
+  void PosCtrlCallback(const std_msgs::msg::Bool::SharedPtr msg);
+  void ImuCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
+  void TakeoffCallback(const std_msgs::msg::Empty::SharedPtr msg);
+  void LandCallback(const std_msgs::msg::Empty::SharedPtr msg);
+  void ResetCallback(const std_msgs::msg::Empty::SharedPtr msg);
+  void SwitchModeCallback(const std_msgs::msg::Bool::SharedPtr msg);
+
+    rclcpp::Time state_stamp_;
   // TODO: Change for pointers and init in constructor
   ignition::math::v6::Pose3<double> pose;
   ignition::math::v6::Vector3<double> euler;

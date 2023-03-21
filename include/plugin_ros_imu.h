@@ -58,22 +58,16 @@
 #ifndef HECTOR_GAZEBO_PLUGINS_GAZEBO_ROS_IMU_H
 #define HECTOR_GAZEBO_PLUGINS_GAZEBO_ROS_IMU_H
 
-// #define USE_CBQ
-#ifdef USE_CBQ
-#include <ros/callback_queue.h>
-#include <ros/advertise_options.h>
-#endif
-
 #include "gazebo/common/Plugin.hh"
+#include "gazebo/gazebo.hh"
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <std_srvs/srv/empty.hpp>
+
 #include <boost/thread/mutex.hpp>
-#include <sensor_msgs/Imu.h>
-#include <std_srvs/Empty.h>
 
-#include <gazebo/gazebo.hh>
-#include <sensor_model.h>
-#include <sjtu_drone/SetBias.h>
+#include <string>
 
 
 namespace gazebo
@@ -100,11 +94,11 @@ namespace gazebo
       physics::LinkPtr link;
 
       /// \brief pointer to ros node
-      ros::NodeHandle* node_handle_;
-      ros::Publisher pub_;
+      std::shared_ptr<rclcpp::Node> node_handle_;
+      rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
 
       /// \brief ros message
-      sensor_msgs::Imu imuMsg;
+      sensor_msgs::msg::Imu imuMsg;
 
       /// \brief store link name
       std::string linkName;
@@ -142,16 +136,18 @@ namespace gazebo
       std::string robotNamespace;
 
       /// \brief call back when using service
-      bool ServiceCalibrate(std_srvs::Empty::Request &req,
-                                    std_srvs::Empty::Response &res);
-      ros::ServiceServer srv_;
+      bool ServiceCalibrate(
+         const std::shared_ptr<std_srvs::srv::Empty::Request> req,
+         const std::shared_ptr<std_srvs::srv::Empty::Response>  res);
+      rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_;
       std::string serviceName;
 
       /// \brief Bias service callbacks
-      bool SetAccelBiasCallback(sjtu_drone::SetBias::Request &req, sjtu_drone::SetBias::Response &res);
-      bool SetRateBiasCallback(sjtu_drone::SetBias::Request &req, sjtu_drone::SetBias::Response &res);
-      ros::ServiceServer accelBiasService;
-      ros::ServiceServer rateBiasService;
+      bool SetAccelBiasCallback(const std::shared_ptr<std_srvs::srv::Empty::Request> req, const std::shared_ptr<std_srvs::srv::Empty::Response>  res);
+      bool SetRateBiasCallback(const std::shared_ptr<std_srvs::srv::Empty::Request> req, const std::shared_ptr<std_srvs::srv::Empty::Response>  res);
+      rclcpp::Service<std_srvs::srv::Empty>::SharedPtr accel_bias_service_;
+      rclcpp::Service<std_srvs::srv::Empty>::SharedPtr rate_bias_service_;
+
 
       // Pointer to the update event connection
       event::ConnectionPtr updateConnection;

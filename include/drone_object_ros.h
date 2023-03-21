@@ -1,10 +1,11 @@
 #ifndef ARDRONE_ROS_H
 #define ARDRONE_ROS_H
 
-#include <ros/ros.h>
-#include <std_msgs/Empty.h>
-#include <std_msgs/Bool.h>
-#include <geometry_msgs/Twist.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/empty.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+
 
 /**
  * @brief A simple class to send the commands to the drone through 
@@ -16,7 +17,7 @@ protected:
     DroneObjectROS(){}
 public:
     
-    DroneObjectROS(ros::NodeHandle& node){
+    DroneObjectROS(std::shared_ptr<rclcpp::Node> node){
         initROSVars(node);
     }
 
@@ -24,16 +25,17 @@ public:
     bool isPosctrl;
     bool isVelMode;
     
-    ros::Publisher pubTakeOff;
-    ros::Publisher pubLand;
-    ros::Publisher pubReset;
-    ros::Publisher pubCmd;
-    ros::Publisher pubPosCtrl;
-    ros::Publisher pubVelMode;
+    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pubTakeOff;
+    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pubLand;
+    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr pubReset;
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pubCmd;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pubPosCtrl;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pubVelMode;
     
-    geometry_msgs::Twist twist_msg;
+    std_msgs::msg::Empty empty_msg;
+    geometry_msgs::msg::Twist twist_msg;
     
-    void initROSVars(ros::NodeHandle& node);
+    void initROSVars(std::shared_ptr<rclcpp::Node>);
     
     bool takeOff();
     bool land();
