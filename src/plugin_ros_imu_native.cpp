@@ -1,7 +1,13 @@
 #include "plugin_ros_imu_native.h"
 #include "gazebo/sensors/ImuSensor.hh"
 namespace gazebo{
-void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/){
+GZ_REGISTER_SENSOR_PLUGIN(RosImuPlugin)
+
+RosImuPlugin::RosImuPlugin() {}
+
+RosImuPlugin::~RosImuPlugin() {}
+
+void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf){
     // Make sure the ROS node for Gazebo has already been initialized
     if (!rclcpp::ok())
     {
@@ -11,6 +17,10 @@ void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/){
     
     if (!_sensor)
         gzerr << "Invalid sensor pointer.\n";
+    if (!_sdf->HasElement("imuTopic"))
+        topic_name_ = "imu";
+    else
+        topic_name_ = _sdf->GetElement("imuTopic")->Get<std::string>();
         
     /** Changed by TC to allow C++1 compilation
     this->imu_ = boost::dynamic_pointer_cast<sensors::ImuSensor>(_sensor); **/
@@ -22,7 +32,7 @@ void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/){
     
     RCLCPP_WARN(rclcpp::get_logger("RosImuPlugin"), "The IMU plugin has been loaded!");
 
-    node_handle_ = std::make_shared<rclcpp::Node>("", "");
+    node_handle_ = std::make_shared<rclcpp::Node>("imu", "drone");
     pub_ = node_handle_->create_publisher<sensor_msgs::msg::Imu>(topic_name_, 1);
 
     this->updateConnection = this->imu_->ConnectUpdated(
@@ -54,6 +64,4 @@ void RosImuPlugin::onUpdate(){
    pub_->publish(imu_msg_);
    
 }
-
-GZ_REGISTER_SENSOR_PLUGIN(RosImuPlugin)
 }
