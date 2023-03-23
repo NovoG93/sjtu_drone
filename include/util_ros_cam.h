@@ -35,7 +35,7 @@
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <std_msgs/msg/float64.hpp>
-#include <image_transport/image_transport.h>
+#include <image_transport/image_transport.hpp>
 
 // Gazebo
 #include <gazebo/physics/physics.hh>

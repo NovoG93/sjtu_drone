@@ -14,6 +14,7 @@ void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf){
       RCLCPP_WARN(rclcpp::get_logger("RosImuPlugin"), "ROS node has not been initialized!");
       return;
     }
+    model_name_ = _sensor->ParentName().substr(0, _sensor->ParentName().find("::"));
     
     if (!_sensor)
         gzerr << "Invalid sensor pointer.\n";
@@ -32,7 +33,7 @@ void RosImuPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf){
     
     RCLCPP_WARN(rclcpp::get_logger("RosImuPlugin"), "The IMU plugin has been loaded!");
 
-    node_handle_ = std::make_shared<rclcpp::Node>("imu", "drone");
+    node_handle_ = std::make_shared<rclcpp::Node>("imu", model_name_);
     pub_ = node_handle_->create_publisher<sensor_msgs::msg::Imu>(topic_name_, 1);
 
     this->updateConnection = this->imu_->ConnectUpdated(

@@ -6,6 +6,7 @@
 #include "gazebo/common/Events.hh"
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/executors/single_threaded_executor.hpp>
 #include <rclcpp/callback_group.hpp>
 
 #include <geometry_msgs/msg/twist.hpp>
@@ -54,6 +55,7 @@ private:
   /// \brief The link referred to by this plugin
   physics::LinkPtr link;
 
+  std::shared_ptr<rclcpp::executors::MultiThreadedExecutor> executor_;
   std::shared_ptr<rclcpp::Node> node_handle_;
   rclcpp::CallbackGroup::SharedPtr callback_group_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_subscriber_;
@@ -87,6 +89,7 @@ private:
   ignition::math::v6::Vector3<double> velocity, acceleration, angular_velocity, position;
 
   std::string link_name_;
+  std::string model_name_;
   std::string cmd_normal_topic_;
   std::string switch_mode_topic_;
   std::string posctrl_topic_;

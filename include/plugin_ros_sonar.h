@@ -14,7 +14,7 @@ namespace gazebo {
   class RosSonarPlugin : public SensorPlugin
   {
   public:
-    RosSonarPlugin() { topicName = "drone/sonar"; }
+    RosSonarPlugin() {}
     virtual ~RosSonarPlugin() {}
 
     virtual void Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf);
@@ -29,7 +29,8 @@ namespace gazebo {
 
     std::shared_ptr<rclcpp::Node> node_handle_;
     rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr pub_;
-    std::string topicName;
+    std::string model_name_;
+    std::string topic_name_;
   };
 }
 

@@ -92,34 +92,34 @@ target_link_libraries(plugin_ros_imu
   ${gazebo_plugins_LIBRARIES}
 )
 
-################# 4. A  sensor plugin for the camera  #########################
-add_library( plugin_ros_cam SHARED
-    src/plugin_ros_cam.cpp
-    src/util_ros_cam.cpp
-    include/plugin_ros_cam.h
-    include/util_ros_cam.h
-)
-target_link_libraries( plugin_ros_cam
-   ${catkin_LIBRARIES}
-   ${GAZEBO_LIBRARIES}
-   ${OGRE_LIBRARY_DIRS}
-   CameraPlugin
-)
-target_compile_features(plugin_ros_cam PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_include_directories(plugin_ros_cam PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(plugin_ros_cam
-  "rclcpp"
-  "geometry_msgs"
-  "image_transport"
-  "sensor_msgs"
-  "gazebo_ros"
-  "gazebo_plugins"
-  "gazebo_dev"
-  "std_srvs"
-  "camera_info_manager"
-)
+# ################# 4. A  sensor plugin for the camera  #########################
+# add_library( plugin_ros_cam SHARED
+#     src/plugin_ros_cam.cpp
+#     src/util_ros_cam.cpp
+#     include/plugin_ros_cam.h
+#     include/util_ros_cam.h
+# )
+# target_link_libraries( plugin_ros_cam
+#    ${catkin_LIBRARIES}
+#    ${GAZEBO_LIBRARIES}
+#    ${OGRE_LIBRARY_DIRS}
+#    CameraPlugin
+# )
+# target_compile_features(plugin_ros_cam PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+# target_include_directories(plugin_ros_cam PUBLIC
+#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#   $<INSTALL_INTERFACE:include>)
+# ament_target_dependencies(plugin_ros_cam
+#   "rclcpp"
+#   "geometry_msgs"
+#   "image_transport"
+#   "sensor_msgs"
+#   "gazebo_ros"
+#   "gazebo_plugins"
+#   "gazebo_dev"
+#   "std_srvs"
+#   "camera_info_manager"
+# )
 
 ################## 5. A sonar sensor plugin for the quadrotor ####################
 add_library( plugin_ros_sonar SHARED
@@ -154,7 +154,7 @@ ament_target_dependencies(plugin_ros_sonar
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(plugin_ros_imu PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
 target_compile_definitions(plugin_drone PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
-target_compile_definitions(plugin_ros_cam PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
+# target_compile_definitions(plugin_ros_cam PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
 target_compile_definitions(plugin_ros_sonar PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
 
 install(
@@ -162,7 +162,7 @@ install(
   DESTINATION include
 )
 install(
-  TARGETS plugin_ros_imu plugin_drone plugin_ros_cam plugin_ros_sonar
+  TARGETS plugin_ros_imu plugin_drone plugin_ros_sonar
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -181,7 +181,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-set_target_properties( plugin_ros_imu plugin_drone plugin_ros_cam plugin_ros_sonar
+set_target_properties( plugin_ros_imu plugin_drone plugin_ros_sonar
     PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY
     ${PROJECT_SOURCE_DIR}/plugins
@@ -193,11 +193,16 @@ ament_export_include_directories(
 ament_export_libraries(
   plugin_ros_imu
   plugin_drone
-  plugin_ros_cam
+  # plugin_ros_cam
   plugin_ros_sonar
 )
 ament_export_targets(
   export_${PROJECT_NAME}
 )
 
+
+install(
+  DIRECTORY models
+  DESTINATION share/${PROJECT_NAME}
+)
 ament_package()

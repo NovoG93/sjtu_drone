@@ -19,7 +19,8 @@
 #include <algorithm>
 #include <assert.h>
 #include <boost/thread/thread.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
+using namespace boost::placeholders;
 
 #include <sensor_msgs/msg/image.hpp>
 #include <image_transport/image_transport.hpp>
@@ -101,7 +102,7 @@ void GazeboRosCameraUtils::Load(sensors::SensorPtr _parent,
   // pr2_gazebo_plugins
   this->world = this->world_;
 
-  this->robot_namespace_ = "";
+  this->robot_namespace_ = _parent->ParentName().substr(0, _parent->ParentName().find("::"));
   if (this->sdf->HasElement("robotNamespace"))
     this->robot_namespace_ = this->sdf->Get<std::string>("robotNamespace") + "/";
 
@@ -115,13 +116,12 @@ void GazeboRosCameraUtils::Load(sensors::SensorPtr _parent,
       this->sdf->Get<std::string>("cameraInfoTopicName");
 
   if (!this->sdf->HasElement("cameraName"))
-    RCLCPP_DEBUG(rclcpp::get_logger("DroneCameraController"),  "Camera plugin missing <cameraName>, default to empty");
+  {
+     RCLCPP_DEBUG(rclcpp::get_logger("DroneCameraController"),  "Camera plugin missing <cameraName>, default to empty");
+    this->camera_name_ = "camera";
+  }
   else
     this->camera_name_ = this->sdf->Get<std::string>("cameraName");
-
-  // overwrite camera suffix
-  // example usage in gazebo_ros_multicamera
-  this->camera_name_ += _camera_name_suffix;
 
   if (!this->sdf->HasElement("frameName"))
     RCLCPP_DEBUG(rclcpp::get_logger("DroneCameraController"),  "Camera plugin missing <frameName>, defaults to /world");
@@ -224,6 +224,7 @@ void GazeboRosCameraUtils::Load(sensors::SensorPtr _parent,
              " distortion parameters right now, your simulation maybe wrong.");
   }
 
+  RCLCPP_INFO(rclcpp::get_logger("DroneSimpleController"), "Initialization finished with ns: %s", this->robot_namespace_.c_str());
   // initialize shared_ptr members
   if (!this->image_connect_count_) this->image_connect_count_ = std::shared_ptr<int>(new int(0));
   if (!this->image_connect_count_lock_) this->image_connect_count_lock_ = boost::shared_ptr<boost::mutex>(new boost::mutex);
@@ -256,8 +257,7 @@ void GazeboRosCameraUtils::LoadThread()
   // associated ROS topics.
   this->parentSensor_->SetActive(false);
 
-  this->node_handle_ = std::make_shared<rclcpp::Node>(this->robot_namespace_ +
-    "/" + this->camera_name_);
+  this->node_handle_ = std::make_shared<rclcpp::Node>(this->camera_name_, this->robot_namespace_);
 
   this->itnode_ = std::make_shared<image_transport::ImageTransport>(this->node_handle_);
 

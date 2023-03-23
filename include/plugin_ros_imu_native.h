@@ -28,6 +28,7 @@ private:
 
   sensor_msgs::msg::Imu imu_msg_;
 
+  std::string model_name_;
   std::string topic_name_;
 
   // Pointer to the update event connection

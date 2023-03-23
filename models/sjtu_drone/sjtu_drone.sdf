@@ -1,10 +1,10 @@
 <?xml version='1.0'?>
-<sdf version='1.4'>
+<sdf version='1.7'>
   <model name='sjtu_drone'>
     <!-- model plugins should be put in the front of the sensor plugins! 
 	This might be a bug~
 	-->
-    <!-- <plugin name='simple_drone' filename='libplugin_drone.so'>
+    <plugin name='simple_drone' filename='libplugin_drone.so'>
       <bodyName>base_link</bodyName>
       <imuTopic>/drone/imu</imuTopic>
       <rollpitchProportionalGain>10.0</rollpitchProportionalGain>
@@ -30,7 +30,7 @@
       <motionSmallNoise>0.05</motionSmallNoise>
       <motionDriftNoise>0.03</motionDriftNoise>
       <motionDriftNoiseTime>5.0</motionDriftNoiseTime>
-    </plugin> -->
+    </plugin>
 
     <!-- pose of the quadrotor in the world frame -->
     <pose>0 0 0.04 0 0 0</pose>
@@ -71,6 +71,7 @@
       <!-- IMU sensor in 100fps -->
       <sensor name='sensor_imu' type='imu'>
         <always_on> 1 </always_on>
+        <visualize>1</visualize>
         <update_rate> 100 </update_rate>
         <pose> 0 0 0 0 0 0 </pose>
         <!-- <plugin name='ros_imu' filename='libgazebo_ros_imu_sensor.so'> -->
@@ -93,22 +94,22 @@
 
 
       <!-- Sonar sensor in 100fps -->
-      <!-- <sensor name='sensor_sonar' type='sonar'>
+      <sensor name='sensor_sonar' type='sonar'>
         <always_on>1</always_on>
-        <visualize>0</visualize>
+        <visualize>1</visualize>
         <update_rate>100</update_rate>
-        <pose> 0.5 0 0.3 0 1.570796327 3.141592653 </pose>
+        <pose> 0.0 0 -0.1 0 0 0 </pose>
         <plugin name='ros_sonar' filename='libplugin_ros_sonar.so'>
         </plugin>
         <sonar>
           <min>0</min>
-          <max>5</max>
+          <max>10</max>
           <radius>1.33974596</radius>
         </sonar>
-      </sensor> -->
+      </sensor>
 
       <!-- front camera -->
-      <!-- <sensor name="front_camera" type="camera">
+      <sensor name="front_camera" type="camera">
         <camera>
           <horizontal_fov>2.09</horizontal_fov>
           <image>
@@ -130,10 +131,33 @@
         <always_on>1</always_on>
         <update_rate>60</update_rate>
         <visualize>true</visualize>
-        <plugin name='front_camera' filename='libplugin_ros_cam.so'>
+        <!-- <plugin name='front_camera' filename='libplugin_ros_cam.so'>
           <imageTopicName>/drone/front_camera/image_raw</imageTopicName>
+        </plugin> -->
+        <!-- Use camera, not camera_triggered -->
+        <plugin name="plugin_name" filename="libgazebo_ros_camera.so">
+          <!-- Change namespace, camera name and topics so -
+                 * Images are published to: /custom_ns/custom_camera/custom_image
+                 * Camera info is published to: /custom_ns/custom_camera/custom_info
+            -->
+          <ros>
+            <namespace>drone</namespace>
+            <remapping>image_raw:=camera_front</remapping>
+            <remapping>camera_info:=custom_info</remapping>
+          </ros>
+
+          <!-- Set camera name. If empty, defaults to sensor name (i.e. "sensor_name") -->
+          <camera_name>front</camera_name>
+
+          <!-- Set TF frame name. If empty, defaults to link name (i.e. "link_name") -->
+          <frame_name>camera</frame_name>
+
+          <hack_baseline>0.07</hack_baseline>
+
+          <!-- No need to repeat distortion parameters or to set autoDistortion -->
         </plugin>
-      </sensor> -->
+      </sensor>
+      
 
       <!-- downward looking camera -->
       <!-- <sensor name="down_camera" type="camera">

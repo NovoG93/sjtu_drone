@@ -35,3 +35,13 @@ The folowing sensors are currently implemented:
 
 For more see the following image:
 ![rosgraph](./img/rosgraph.png)
+
+
+
+
+# ROS 2 To-Dos:
+- [ ] Fix takeoff
+- [ ] Add second cam
+- [ ] Add xacro file
+- [ ] Check if custom IMU and Cams or Gazebo-ROS plugins
+- [ ] Fix RQT_GRAPH

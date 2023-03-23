@@ -55,7 +55,7 @@ namespace gazebo
                    unsigned int _depth, const std::string &_format);
 
     private:
-      rclcpp::Node::SharedPtr rosNode_;
+      // rclcpp::Node::SharedPtr node_handle_;
       image_transport::CameraPublisher imagePub_;
       std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager_;
   };
