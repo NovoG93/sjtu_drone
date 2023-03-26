@@ -48,6 +48,7 @@ jobs:
           filename: ${{ env.GITHUB_REPOSITORY_ID }}_${{ matrix.ros_distribution }}_build.json
           label: ${{ matrix.ros_distribution }}
           message: ${{ env.BUILD_STATUS }}
+          color: green
 
       - name: Test
         continue-on-error: true
