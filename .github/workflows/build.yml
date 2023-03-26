@@ -1,0 +1,64 @@
+name: Build
+
+on:
+  "push":
+    branches: [ros2]
+
+jobs:
+  build:
+    name: Build and test on ros ${{ matrix.ros_distribution }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # - os: ubuntu-20.04
+          #   ros_distribution: "galactic"
+          - os: ubuntu-22.04
+            ros_distribution: "humble"
+          - os: ubuntu-22.04
+            ros_distribution: "rolling"
+      fail-fast: false
+    steps:
+      - name: Setup ROS2 ${{ matrix.ros_distribution }}
+        uses: ros-tooling/setup-ros@v0.6
+        with:
+          required-ros-distributions: ${{ matrix.ros_distribution }}
+
+      - name: Build
+        id: build_step
+        uses: ros-tooling/action-ros-ci@v0.3
+        with:
+          target-ros2-distro: ${{ matrix.ros_distribution }}
+          skip-tests: true
+
+      - name: Set Badge Message
+        id: set_badge_message
+        run: |
+          if [ ${{ steps.build_step.outcome }} == "success" ]; then
+            echo "BUILD_STATUS=success" >> $GITHUB_ENV
+          else
+            echo "BUILD_STATUS=failure" >> $GITHUB_ENV
+          fi
+
+      - name: Create Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 589e4b4dc8d92861e4b92defff6d56c0
+          filename: ${{ env.GITHUB_REPOSITORY_ID }}_${{ matrix.ros_distribution }}_build.json
+          label: ${{ matrix.ros_distribution }}
+          message: ${{ env.BUILD_STATUS }}
+
+      - name: Test
+        continue-on-error: true
+        uses: ros-tooling/action-ros-ci@v0.3
+        with:
+          target-ros2-distro: ${{ matrix.ros_distribution }}
+          skip-tests: false
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: colcon-logs
+          path: ${{ steps.action_ros_ci_step.outputs.ros-workspace-directory-name }}/log
+        if: always() 
