@@ -17,12 +17,17 @@ def generate_launch_description():
     xacro_file_name = "sjtu_drone.urdf.xacro"
     pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
     xacro_file = os.path.join(
-        get_package_share_directory("sjtu_drone"),
+        get_package_share_directory("sjtu_drone_description"),
         "urdf", xacro_file_name
     )
     robot_description_config = xacro.process_file(xacro_file)
     robot_desc = robot_description_config.toxml()
     model_ns = "drone"
+
+    world_file = os.path.join(
+        get_package_share_directory("sjtu_drone_description"),
+        "worlds", "playground.world"
+    )
 
     return LaunchDescription([
         Node(
@@ -47,7 +52,8 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
             ),
-            launch_arguments={'verbose': "true",
+            launch_arguments={'world': world_file,
+                              'verbose': "true",
                               'extra_gazebo_args': 'verbose'}.items()
         ),
 

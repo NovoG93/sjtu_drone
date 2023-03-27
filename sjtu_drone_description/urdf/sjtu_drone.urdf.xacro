@@ -11,14 +11,14 @@
     <collision name="sjtu_drone_collision">
       <origin rpy="0 0 0" xyz="0   0   0.04"/>
       <geometry>
-        <mesh filename="file://$(find sjtu_drone)/models/sjtu_drone/quadrotor_4.stl"/>
+        <mesh filename="file://$(find sjtu_drone_description)/models/sjtu_drone/quadrotor_4.stl"/>
         <!-- <mesh filename="package://sjtu_drone/quadrotor_4.stl"/> -->
       </geometry>
     </collision>
     <visual name="sjtu_drone_visual">
       <origin rpy="0 0 0" xyz="0   0   0.04"/>
       <geometry>
-        <mesh filename="file://$(find sjtu_drone)/models/sjtu_drone/quadrotor_4.dae"/>
+        <mesh filename="file://$(find sjtu_drone_description)/models/sjtu_drone/quadrotor_4.dae"/>
         <!-- <mesh filename="package://sjtu_drone/quadrotor_4.dae"/> -->
       </geometry>
     </visual>
@@ -217,6 +217,36 @@
         <camera_name>bottom</camera_name>
         <frame_name>bottom_cam_link</frame_name>
         <hack_baseline>0.07</hack_baseline>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+
+  <gazebo reference="base_link">
+    <sensor name="gps" type="gps">
+      <always_on>true</always_on>
+      <update_rate>30</update_rate>
+      <gps>
+        <position_sensing>
+          <horizontal>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </horizontal>
+          <vertical>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </vertical>
+        </position_sensing>
+      </gps>
+      <plugin name="gps" filename="libgazebo_ros_gps_sensor.so">
+        <ros>
+          <namespace>/gps</namespace>
+          <remapping>~/out:=data</remapping>
+        </ros>
       </plugin>
     </sensor>
   </gazebo>
