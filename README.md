@@ -18,6 +18,8 @@ cd ~/ros2_ws/src && ln -s ~/git/sjtu_drone
 cd .. && rosdep install -r -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO && colcon build --packages-select-regex sjtu*
 ```
 
+To use the playground.world file (as depicted below) make sure to install the common gazebo models, for more see the [Readme in sjtu_drone_description](./sjtu_drone_description/README.md).
+
 ## Drone Topics
 
 ### Sensors

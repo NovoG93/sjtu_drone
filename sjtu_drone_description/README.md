@@ -1,61 +1,23 @@
-# Overview
+# sjtu_drone_description
 
-sjtu_drone is a quadrotor simulation program forked from [tum_simulator](http://wiki.ros.org/tum_simulator), developed using ROS + Gazebo.
+This package contains the xacro/urdf/sdf model description of the sjtu drone and the corresponding plugin for Gazebo 11 and ROS 2 Humble.
 
-The acronym 'sjtu' stands for Shanghai Jiao Tong University. This package has been used in the past for testing algorithms for the [UAV contest at SJTU](http://mediasoc.sjtu.edu.cn/wordpress)
 
-# Requirements
+## Structure
 
-This package is compatible with ROS Noetic version (Ubuntu 20.04). Existing versions on the internet support at most until Gazebo 7. After Gazebo 8.0, the API has gone significant changes; therefore, it was necessary to adapt the package to Gazebo 8.0+ API. As the default version of Gazebo coming with ROS Noetic is 11.0, it is suggested that do not use the full installation but the [desktop installation](http://wiki.ros.org/noetic/Installation/Ubuntu).
+* __models__: Gazebo sdf model and model meshes
+* __include__: Header files for the PID controller and drone plugin
+* __src__: Source code for the drone plugin and PID controller
+* __urdf__: Xacro and urdf model description files
+* __worlds__: Contains one playground world
 
-# Downloading and building
 
+## Worlds
+To fully load the world you need to donwload the gazebo models first:
 ```
-cd ~/git && git clone git@github.com:NovoG93/sjtu-drone.git 
-cd ~/catkin_ws/src && ln -s ~/git/sjtu-drone
-cd .. && rosdep install -r -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO && catkin build
-```
-# Run
-
-```
-source ~/catkin_ws/devel/setpu.bash && rospack profile
-roslaunch sjtu_drone start.launch
+curl -L https://github.com/osrf/gazebo_models/archive/refs/heads/master.zip -o /tmp/gazebo_models.zip && unzip /tmp/gazebo_models.zip -d /tmp && rsync -av --delete /tmp/gazebo_models-master/ ~/.gazebo/models/ && rm -r /tmp/gazebo_models-master /tmp/gazebo_models.zip
 ```
 
-You should now see the following:
+## TF Tree
 
-![Gazebo](img/drone.jpg)
-
-## Sensors
-The folowing sensors are currently implemented:
-- front_camera: /drone/front_camera/iage_raw
-- downward_camera: /drone/down_camera/iage_raw
-- sonar: /drone/sonar
-- imu: /drone/imu
-
-For more see the following image:
-![rosgraph](./img/rosgraph.png)
-
-
-
-
-# ROS 2 To-Dos:
-- [x] Fix takeoff
-- [x] Test Teleop 
-- [x] Add second cam
-- [ ] Add xacro file
-- [ ] Check if custom IMU and Cams or Gazebo-ROS plugins
-- [ ] Fix RQT_GRAPH
-- [ ] Replace logger with class variable
-- [ ] Test urdf/sdf parameter
-- [ ] Add check in bashrc wether $VSCODE_SHELL_INTEGRATION is defined to trigger tmux
-
-
-# Tutorial
-
-1. `ros2 launch gazebo_ros gazebo.launch.py`
-2. `cd $HOME/ros2_ws/src/sjtu_drone/models/sjtu_drone/ && gz model -f sjtu_drone.sdf -m drone`
-3. `ros2 topic pub /drone/takeoff std_msgs/msg/Emtpy std_msgs/msg/Empty "{}"`
-4. `ros2 run teleop_twist_keyboard teleop_twist_keyboard -r __n:=/drone`
-5. Enjoy
-6. `ros2 topic pub /drone/land std_msgs/msg/Empty "{}"`
+![TF Tree](../imgs/tf_tree.png)

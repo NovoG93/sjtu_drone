@@ -104,7 +104,7 @@ ament_export_targets(
 
 
 install(
-  DIRECTORY models urdf 
+  DIRECTORY models urdf worlds
   DESTINATION share/${PROJECT_NAME}
 )
 ament_package()

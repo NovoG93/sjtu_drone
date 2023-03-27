@@ -11,6 +11,7 @@
   <depend>xacro</depend>
   <depend>rviz2</depend>
   <depend>xterm</depend>
+  <depend>imu_tools</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
