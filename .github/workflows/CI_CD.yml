@@ -18,6 +18,8 @@ jobs:
           - os: ubuntu-22.04
             ros_distribution: "rolling"
       fail-fast: false
+    outputs:
+      build_step_outcome: ${{ steps.build_step.outcome }}
     steps:
       - name: Setup ROS2 ${{ matrix.ros_distribution }}
         uses: ros-tooling/setup-ros@v0.6
@@ -66,7 +68,8 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ needs.build.result == 'success' }}
+    needs: build
+    if: needs.build.outputs.build_step_outcome == 'success'
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
