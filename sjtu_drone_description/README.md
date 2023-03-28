@@ -15,7 +15,9 @@ This package contains the xacro/urdf/sdf model description of the sjtu drone and
 ## Worlds
 To fully load the world you need to donwload the gazebo models first:
 ```
-curl -L https://github.com/osrf/gazebo_models/archive/refs/heads/master.zip -o /tmp/gazebo_models.zip && unzip /tmp/gazebo_models.zip -d /tmp && rsync -av --delete /tmp/gazebo_models-master/ ~/.gazebo/models/ && rm -r /tmp/gazebo_models-master /tmp/gazebo_models.zip
+curl -L https://github.com/osrf/gazebo_models/archive/refs/heads/master.zip -o /tmp/gazebo_models.zip \
+    && unzip /tmp/gazebo_models.zip -d /tmp && mkdir -p ~/.gazebo/models/ && mv /tmp/gazebo_models-master/* ~/.gazebo/models/ \
+    && rm -r /tmp/gazebo_models.zip
 ```
 
 ## TF Tree

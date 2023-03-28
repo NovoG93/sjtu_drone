@@ -48,6 +48,16 @@ The following ground truth topics are currently published:
 
 # Run
 
+## Docker
+
+1. Start the docker container:   
+`bash run_docker.sh`
+2. Connect to docker container to takeoff / land drone:   
+    1. `docker container exec -it sjtu_drone 'ros2 topic pub /drone/takeoff std_msgs/msg/Empty {} --once'`
+    1. `docker container exec -it sjtu_drone 'ros2 topic pub /drone/land std_msgs/msg/Empty {} --once'`
+
+## ROS 2 Source Installation
+
 1. Start gazebo, spawn drone, open teleop in xterm window, and open rviz:   
 `ros2 launch  sjtu_drone_bringup sjtu_drone_bringup.launch.py`
 2. Takeoff drone:   
@@ -100,3 +110,8 @@ The parameters of the PID controller that controls the drone and the motion nois
     <motionDriftNoiseTime>5.0</motionDriftNoiseTime>
 </plugin>
 ```
+
+# Known Issues
+* No ROS communication between docker container and host
+* Change of ROS namespace not working automatically for plugin_drone when changed in [spawn_drone.py](./sjtu_drone_bringup/sjtu_drone_bringup/spawn_drone.py)
+    * TODO: Change to gazebo_ros::Node::SharedPtr

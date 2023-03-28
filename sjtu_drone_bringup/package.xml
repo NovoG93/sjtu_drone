@@ -12,6 +12,9 @@
   <depend>rviz2</depend>
   <depend>xterm</depend>
   <depend>imu_tools</depend>
+  <depend>teleop_twist_keyboard</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>joint_state_publisher</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
