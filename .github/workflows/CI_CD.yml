@@ -11,10 +11,10 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-20.04
-          #   ros_distribution: "galactic"
           - os: ubuntu-22.04
             ros_distribution: "humble"
+          - os: ubuntu-22.04
+            ros_distribution: "iron"
           - os: ubuntu-22.04
             ros_distribution: "rolling"
       fail-fast: false
@@ -67,7 +67,17 @@ jobs:
         if: always()
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            ros_distribution: "humble"
+          - os: ubuntu-22.04
+            ros_distribution: "iron"
+          - os: ubuntu-22.04
+            ros_distribution: "rolling"
+      fail-fast: false
     needs: build
     if: needs.build.outputs.build_step_outcome == 'success'
     steps:
@@ -90,4 +100,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sjtu_drone:ros2
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sjtu_drone:ros2-${{ matrix.ros_distribution }}
+          args: --build-arg ROS_DISTRO=${{ matrix.ros_distribution}}

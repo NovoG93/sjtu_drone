@@ -1,0 +1,39 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+    "image": "georgno/fhtw-ros:iron-desktop-ros_terminal-standard",
+	"remoteUser": "fhtw_user",
+	"initializeCommand": "xhost +",
+	"onCreateCommand": "sudo bash /entrypoint.sh &",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/home/fhtw_user/sim_ws/src/sjtu_drone,type=bind,consistency=cached",
+	"workspaceFolder": "/home/fhtw_user/sim_ws",
+	// mount Jupyter/src/ros2 to ~/ros2_ws/src
+	"runArgs": [
+		"--shm-size=512m",
+		"--privileged",
+		"--gpus=all",
+		"--volume=/tmp/.X11-unix:/tmp/.X11-unix"
+	],
+	"containerEnv": {
+		"DISPLAY": "${localEnv:DISPLAY}",
+		// "LIBGL_ALWAYS_SOFTWARE": "1" // Needed for software rendering of opengl
+	},
+	// Set *default* container specific settings.json values on container create.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+                "althack.ament-task-provider",
+                "DotJoshJohnson.xml",
+                "ms-azuretools.vscode-docker",
+                "ms-python.python",
+                "ms-vscode.cpptools",
+                "redhat.vscode-yaml",
+                "smilerobotics.urdf",
+                "twxs.cmake",
+                "yzhang.markdown-all-in-one",
+                "zachflower.uncrustify",
+                "ms-iot.vscode-ros",
+                "ms-vscode.cpptools-extension-pack"
+            ]
+		}
+	}
+}

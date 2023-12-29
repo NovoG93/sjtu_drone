@@ -1,9 +1,32 @@
 #!/bin/bash
+
+usage(){
+    echo "Usage: $0 [-r <humble|iron|rolling>]"
+    exit 1
+}
+
+ROS_DISTRO=${ROS_DISTRO:-"iron"}  # [humble, iron, rolling]
+while getopts "r:" opt; do
+    case $opt in
+        r)
+            if [ $OPTARG != "humble" ] && [ $OPTARG != "iron" ] && [ $OPTARG != "rolling" ]; then
+                echo "Invalid ROS distro: $OPTARG" >&2
+                usage
+            fi
+            ROS_DISTRO=$OPTARG
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            ;;
+    esac
+done
+
 XSOCK=/tmp/.X11-unix
 XAUTH=$HOME/.Xauthority
 
-#  docker build -t georgno/sjtu_drone:$(git rev-parse --abbrev-ref HEAD) .
-docker pull georgno/sjtu_drone:$(git rev-parse --abbrev-ref HEAD)
+#  docker build -t georgno/sjtu_drone:${ROS_DISTRO} .
+docker pull georgno/sjtu_drone:${ROS_DISTRO}
 
 if [ $? -ne 0 ]; then
     exit 1
@@ -22,5 +45,5 @@ docker run \
     --privileged \
     --net=host \
     --name="sjtu_drone" \
-    georgno/sjtu_drone:$(git rev-parse --abbrev-ref HEAD)
+    georgno/sjtu_drone:${ROS_DISTRO}
 xhost -local:docker
