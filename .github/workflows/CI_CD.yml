@@ -101,4 +101,5 @@ jobs:
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sjtu_drone:ros2-${{ matrix.ros_distribution }}
-          args: --build-arg ROS_DISTRO=${{ matrix.ros_distribution}}
+          build-args: |
+            ROS_DISTRO=${{ matrix.ros_distribution }}
