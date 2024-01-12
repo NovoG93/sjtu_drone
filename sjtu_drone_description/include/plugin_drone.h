@@ -1,10 +1,10 @@
 // Copyright 2023 Georg Novotny
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the GNU GENERAL PUBLIC LICENSE, Version 3.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//     https://www.gnu.org/licenses/gpl-3.0.en.html
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,12 @@
 #ifndef PLUGIN_DRONE_H
 #define PLUGIN_DRONE_H
 
+#include "gazebo_ros/node.hpp"
 #include "gazebo/gazebo.hh"
 #include "gazebo/physics/physics.hh"
 #include "gazebo/common/Events.hh"
 
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp/executors/single_threaded_executor.hpp>
 #include <rclcpp/callback_group.hpp>
 
 #include <geometry_msgs/msg/twist.hpp>
@@ -28,6 +28,8 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/int8.hpp>
 
 #include "pid_controller.h"
 
@@ -38,17 +40,17 @@
 
 using namespace std::placeholders;
 
-namespace gazebo
+namespace gazebo_plugins
 {
-class DroneSimpleController : public ModelPlugin
+class DroneSimpleController : public gazebo::ModelPlugin
 {
 public:
   DroneSimpleController();
   virtual ~DroneSimpleController();
 
 protected:
-  virtual void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf);
-  virtual void LoadControllerSettings(physics::ModelPtr _model, sdf::ElementPtr _sdf);
+  virtual void Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf);
+  virtual void LoadControllerSettings(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf);
   virtual void Update();
   void UpdateDynamics(double dt);
   void UpdateState(double dt);
@@ -60,14 +62,15 @@ private:
   bool m_velMode;
   unsigned int navi_state;
 
+    gazebo::event::ConnectionPtr updateConnection; // Pointer to the update event connection
+  rclcpp::Node::SharedPtr node_handle_; // ROS node 
+
   /// \brief The parent World
-  physics::WorldPtr world;
+  gazebo::physics::WorldPtr world;
 
   /// \brief The link referred to by this plugin
-  physics::LinkPtr link;
+  gazebo::physics::LinkPtr link;
 
-  std::shared_ptr<rclcpp::executors::MultiThreadedExecutor> executor_;
-  std::shared_ptr<rclcpp::Node> node_handle_;
   rclcpp::CallbackGroup::SharedPtr callback_group_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_subscriber_;
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr posctrl_subscriber_;
@@ -82,8 +85,10 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr pub_gt_pose_; //for publishing ground truth pose
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_vec_; //ground truth velocity in the body frame
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_acc_; //ground truth acceleration in the body frame
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_cmd_mode; //for publishing command mode
+  rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr pub_state; //for publishing current STATE (Landed, Flying, Takingoff, Landing)
 
-  geometry_msgs::msg::Twist cmd_val;
+  geometry_msgs::msg::Twist cmd_vel;
   // callback functions for subscribers
   void CmdCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
   void PosCtrlCallback(const std_msgs::msg::Bool::SharedPtr msg);
@@ -93,6 +98,7 @@ private:
   void ResetCallback(const std_msgs::msg::Empty::SharedPtr msg);
   void SwitchModeCallback(const std_msgs::msg::Bool::SharedPtr msg);
 
+  rclcpp::SubscriptionOptions create_subscription_options(std::string topic, uint32_t queue_size);
   rclcpp::Time state_stamp_;
   ignition::math::v6::Pose3<double> pose;
   ignition::math::v6::Vector3<double> euler;
@@ -110,6 +116,8 @@ private:
   std::string gt_topic_;
   std::string gt_vel_topic_;
   std::string gt_acc_topic_;
+  std::string cmd_mode_topic_;
+  std::string state_topic_;
   
   double max_force_;
   double motion_small_noise_;
@@ -132,10 +140,7 @@ private:
   double mass;
 
   /// \brief save last_time
-  common::Time last_time;
-
-  // Pointer to the update event connection
-  event::ConnectionPtr updateConnection;
+  gazebo::common::Time last_time;
 };
 
 }

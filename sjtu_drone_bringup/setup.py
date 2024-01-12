@@ -13,7 +13,8 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, "launch"), glob('launch/*launch.[pxy][yma]*')),
-        (os.path.join('share', package_name, "rviz"), glob('rviz/*.rviz'))
+        (os.path.join('share', package_name, "rviz"), glob('rviz/*.rviz')),
+        (os.path.join('share', package_name, "config"), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

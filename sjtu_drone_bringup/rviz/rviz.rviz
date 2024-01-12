@@ -9,7 +9,7 @@ Panels:
         - /Robot1
         - /Sensors1
       Splitter Ratio: 0.5
-    Tree Height: 555
+    Tree Height: 1080
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -51,6 +51,13 @@ Visualization Manager:
       Value: true
     - Class: rviz_common/Group
       Displays:
+        - Class: rviz_default_plugins/Axes
+          Enabled: true
+          Length: 0.5
+          Name: BaseLink
+          Radius: 0.05000000074505806
+          Reference Frame: simple_drone/base_link
+          Value: true
         - Class: rviz_default_plugins/TF
           Enabled: false
           Frame Timeout: 15
@@ -75,7 +82,7 @@ Visualization Manager:
             Durability Policy: Volatile
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /robot_description
+            Value: /simple_drone/robot_description
           Enabled: true
           Links:
             All Links Enabled: true
@@ -104,7 +111,7 @@ Visualization Manager:
             Inertia: false
             Mass: false
           Name: RobotModel
-          TF Prefix: ""
+          TF Prefix: simple_drone
           Update Interval: 0
           Value: true
           Visual Enabled: true
@@ -124,7 +131,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /drone/sonar
+            Value: /simple_drone/sonar
           Value: true
         - Class: rviz_default_plugins/Image
           Enabled: true
@@ -138,7 +145,7 @@ Visualization Manager:
             Durability Policy: Volatile
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /drone/bottom/image_raw
+            Value: /simple_drone/bottom/image_raw
           Value: true
         - Class: rviz_default_plugins/Image
           Enabled: true
@@ -152,7 +159,7 @@ Visualization Manager:
             Durability Policy: Volatile
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /drone/front/image_raw
+            Value: /simple_drone/front/image_raw
           Value: true
         - Acceleration properties:
             Acc. vector alpha: 1
@@ -179,7 +186,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /drone/imu/out
+            Value: /simple_drone/imu
           Value: true
           fixed_frame_orientation: true
       Enabled: true
@@ -187,7 +194,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Fixed Frame: simple_drone/base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -230,25 +237,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 6.945629119873047
+      Distance: 9.565628051757812
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 0.2553290128707886
+        Y: -0.21519576013088226
+        Z: 0.7205119729042053
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3353983759880066
+      Pitch: 0.3103986382484436
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.1403979063034058
+      Yaw: 2.5404067039489746
     Saved: ~
 Window Geometry:
   Camera_Bottom:
@@ -257,10 +264,10 @@ Window Geometry:
     collapsed: false
   Displays:
     collapsed: false
-  Height: 846
+  Height: 1371
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000156000002b4fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000002b4000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b4fc0200000005fb0000001800430061006d006500720061005f00460072006f006e0074010000003b0000013e0000002800fffffffb0000001a00430061006d006500720061005f0042006f00740074006f006d010000017f000001700000002800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b000002b4000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b00000003efc0100000002fb0000000800540069006d00650100000000000004b00000025300fffffffb0000000800540069006d006501000000000000045000000000000000000000023f000002b400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000022d000004c1fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f0070006500720074006900650073020000087b000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000004c1000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000004c1fc0200000005fb0000001800430061006d006500720061005f00460072006f006e0074010000003b000002310000002800fffffffb0000001a00430061006d006500720061005f0042006f00740074006f006d01000002720000028a0000002800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b000002b4000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000a000000003efc0100000002fb0000000800540069006d0065010000000000000a000000025300fffffffb0000000800540069006d00650100000000000004500000000000000000000006b8000004c100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -269,6 +276,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1200
-  X: 400
-  Y: 60
+  Width: 2560
+  X: 0
+  Y: 32

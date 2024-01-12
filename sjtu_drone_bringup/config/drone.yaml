@@ -1,0 +1,59 @@
+# ROS namespace for the drone. All topics and tf frames will be prefixed with this namespace.
+namespace: /simple_drone
+
+# Proportional gain for roll and pitch PID controllers. Controls the drone's response to roll and pitch errors.
+rollpitchProportionalGain: 10.0
+# Differential gain for roll and pitch PID controllers. Helps to reduce overshoot and improve stability.
+rollpitchDifferentialGain: 5.0
+# Maximum absolute value for roll and pitch control outputs, limiting maximum tilt angle.
+rollpitchLimit: 0.5
+
+# Proportional gain for yaw PID controller. Determines how strongly the drone responds to yaw position errors.
+yawProportionalGain: 2.0
+# Differential gain for yaw PID controller. Dampens the rate of change of yaw error for smoother rotation.
+yawDifferentialGain: 1.0
+# Maximum absolute value for yaw control output, limiting rotational rate.
+yawLimit: 1.5
+
+# Proportional gain for horizontal velocity PID controllers. Controls response to changes in horizontal velocity.
+velocityXYProportionalGain: 5.0
+# Differential gain for horizontal velocity PID controllers. Controls acceleration/deceleration in horizontal plane.
+velocityXYDifferentialGain: 2.3
+# Maximum limit for horizontal velocity control output, restricting maximum horizontal speed.
+velocityXYLimit: 2
+
+# Proportional gain for vertical velocity PID controller. Influences response to altitude changes.
+velocityZProportionalGain: 5.0
+# Integral gain for vertical velocity PID controller. Set to zero, indicating no error integration over time.
+velocityZIntegralGain: 0.0
+# Differential gain for vertical velocity PID controller. Helps control vertical acceleration and deceleration.
+velocityZDifferentialGain: 1.0
+# Maximum limit for vertical velocity control output. Negative value may indicate special control scenario or error.
+velocityZLimit: -1
+
+# Proportional gain for horizontal position PID controllers. Controls response to horizontal displacement errors.
+positionXYProportionalGain: 1.1
+# Differential gain for horizontal position PID controllers. Set to zero, meaning no rate of change consideration.
+positionXYDifferentialGain: 0.0
+# Integral gain for horizontal position PID controllers. Set to zero, indicating no cumulative error correction.
+positionXYIntegralGain: 0.0
+# Maximum limit for horizontal position control output, restricting maximum correctional force for horizontal errors.
+positionXYLimit: 5
+
+# Proportional gain for vertical position PID controller. Influences altitude adjustment in response to height errors.
+positionZProportionalGain: 1.0
+# Differential gain for vertical position PID controller. Smooths adjustment of altitude changes.
+positionZDifferentialGain: 0.2
+# Integral gain for vertical position PID controller. Set to zero, indicating no error integration over time.
+positionZIntegralGain: 0.0
+# Maximum limit for vertical position control output. Negative value could indicate special requirement or error.
+positionZLimit: -1
+
+# Maximum force that the drone can exert, limiting maximum thrust to prevent aggressive maneuvers.
+maxForce: 30
+# Parameter for adding small random noise to drone's motion. Set to zero, indicating no small noise addition.
+motionSmallNoise: 0.00
+# Parameter for drift noise. Set to zero, meaning no drift noise is being applied.
+motionDriftNoise: 0.00
+# Time interval for updating motion drift noise. Relevant only if `motionDriftNoise` is non-zero.
+motionDriftNoiseTime: 50

@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'teleop = sjtu_drone_control.teleop:main'
+            'teleop = sjtu_drone_control.teleop:main',
+            'open_loop_control = sjtu_drone_control.open_loop_control:main',
+            'drone_position_control = sjtu_drone_control.drone_position_control:main'
         ],
     },
 )

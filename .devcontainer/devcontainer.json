@@ -1,6 +1,6 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-    "image": "georgno/fhtw-ros:iron-desktop-ros_terminal-standard",
+    "image": "georgno/fhtw-ros:iron-base-ros_terminal-standard",
 	"remoteUser": "fhtw_user",
 	"initializeCommand": "xhost +",
 	"onCreateCommand": "sudo bash /entrypoint.sh &",
@@ -8,9 +8,9 @@
 	"workspaceFolder": "/home/fhtw_user/sim_ws",
 	// mount Jupyter/src/ros2 to ~/ros2_ws/src
 	"runArgs": [
-		"--shm-size=512m",
+		"--shm-size=512",
 		"--privileged",
-		"--gpus=all",
+		// "--gpus=all",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix"
 	],
 	"containerEnv": {
