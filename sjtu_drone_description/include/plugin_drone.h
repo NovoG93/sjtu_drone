@@ -42,6 +42,10 @@ using namespace std::placeholders;
 
 namespace gazebo_plugins
 {
+
+// Forward declaration of pimpl idiom
+class DroneSimpleControllerPrivate;
+
 class DroneSimpleController : public gazebo::ModelPlugin
 {
 public:
@@ -50,94 +54,20 @@ public:
 
 protected:
   virtual void Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf);
-  virtual void LoadControllerSettings(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf);
   virtual void Update();
-  void UpdateDynamics(double dt);
-  void UpdateState(double dt);
   virtual void Reset();
 
 private:
-  double m_timeAfterCmd;
-  bool m_posCtrl;
-  bool m_velMode;
-  unsigned int navi_state;
+  std::unique_ptr<DroneSimpleControllerPrivate> impl_;  // Forward declaration of pimpl idiom
 
-    gazebo::event::ConnectionPtr updateConnection; // Pointer to the update event connection
-  rclcpp::Node::SharedPtr node_handle_; // ROS node 
+  gazebo::event::ConnectionPtr updateConnection; // Pointer to the update event connection
 
   /// \brief The parent World
   gazebo::physics::WorldPtr world;
 
   /// \brief The link referred to by this plugin
   gazebo::physics::LinkPtr link;
-
-  rclcpp::CallbackGroup::SharedPtr callback_group_;
-  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_subscriber_;
-  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr posctrl_subscriber_;
-  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
-
-  // extra robot control command
-  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr takeoff_subscriber_;
-  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr land_subscriber_;
-  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr reset_subscriber_;
-  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr switch_mode_subscriber_;
-
-  rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr pub_gt_pose_; //for publishing ground truth pose
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_vec_; //ground truth velocity in the body frame
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_acc_; //ground truth acceleration in the body frame
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_cmd_mode; //for publishing command mode
-  rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr pub_state; //for publishing current STATE (Landed, Flying, Takingoff, Landing)
-
-  geometry_msgs::msg::Twist cmd_vel;
-  // callback functions for subscribers
-  void CmdCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
-  void PosCtrlCallback(const std_msgs::msg::Bool::SharedPtr msg);
-  void ImuCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
-  void TakeoffCallback(const std_msgs::msg::Empty::SharedPtr msg);
-  void LandCallback(const std_msgs::msg::Empty::SharedPtr msg);
-  void ResetCallback(const std_msgs::msg::Empty::SharedPtr msg);
-  void SwitchModeCallback(const std_msgs::msg::Bool::SharedPtr msg);
-
-  rclcpp::SubscriptionOptions create_subscription_options(std::string topic, uint32_t queue_size);
-  rclcpp::Time state_stamp_;
-  ignition::math::v6::Pose3<double> pose;
-  ignition::math::v6::Vector3<double> euler;
-  ignition::math::v6::Vector3<double> velocity, acceleration, angular_velocity, position;
-
   std::string link_name_;
-  std::string model_name_;
-  std::string cmd_normal_topic_;
-  std::string switch_mode_topic_;
-  std::string posctrl_topic_;
-  std::string imu_topic_;
-  std::string takeoff_topic_;
-  std::string land_topic_;
-  std::string reset_topic_;
-  std::string gt_topic_;
-  std::string gt_vel_topic_;
-  std::string gt_acc_topic_;
-  std::string cmd_mode_topic_;
-  std::string state_topic_;
-  
-  double max_force_;
-  double motion_small_noise_;
-  double motion_drift_noise_;
-  double motion_drift_noise_time_;
-
-  struct Controllers {
-    PIDController roll;
-    PIDController pitch;
-    PIDController yaw;
-    PIDController velocity_x;
-    PIDController velocity_y;
-    PIDController velocity_z;
-    PIDController pos_x;
-    PIDController pos_y;
-    PIDController pos_z;
-  } controllers_;
-
-  ignition::math::v6::Vector3<double> inertia;
-  double mass;
 
   /// \brief save last_time
   gazebo::common::Time last_time;
