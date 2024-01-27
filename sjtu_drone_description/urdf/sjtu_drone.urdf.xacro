@@ -80,6 +80,7 @@
       </ros>
 
       <bodyName>base_link</bodyName>
+      <pub_odom>true</pub_odom>
       <rollpitchProportionalGain>${mp['rollpitchProportionalGain']}</rollpitchProportionalGain>
       <rollpitchDifferentialGain>${mp['rollpitchDifferentialGain']}</rollpitchDifferentialGain>
       <rollpitchLimit>${mp['rollpitchLimit']}</rollpitchLimit>
@@ -121,17 +122,18 @@
           <type>gaussian</type>
           <rate>
             <mean> 0 </mean>
-            <stddev> 0 </stddev>
+            <stddev> 0.01 </stddev>
           </rate>
           <accel>
             <mean> 0 </mean>
-            <stddev> 0.00 </stddev>
+            <stddev> 0.01 </stddev>
           </accel>
         </noise>
       </imu>
       <plugin name='imu' filename='libgazebo_ros_imu_sensor.so'>
         <ros>
           <namespace>${mp['namespace']}</namespace>
+          <!-- <remapping>imu:=imu</remapping> -->
         </ros>
         <initial_orientation_as_reference>false</initial_orientation_as_reference>
         <frame_name>${mp['namespace']}/base_link</frame_name>
@@ -203,7 +205,7 @@
         <noise>
           <type>gaussian</type>
           <mean>0.0</mean>
-          <stddev>0.005</stddev>
+          <stddev>0.01</stddev>
         </noise>
       </camera>
       <plugin name="camera_front" filename="libgazebo_ros_camera.so">
@@ -240,7 +242,7 @@
         <noise>
           <type>gaussian</type>
           <mean>0.0</mean>
-          <stddev>0.005</stddev>
+          <stddev>0.01</stddev>
         </noise>
       </camera>
       <plugin name="camera_bottom" filename="libgazebo_ros_camera.so">
@@ -281,6 +283,24 @@
         <ros>
           <namespace>${mp['namespace']}</namespace>
           <remapping>~/out:=~/nav</remapping>
+        </ros>
+        <frame_name>${mp['namespace']}/base_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+
+  <gazebo reference="base_link">
+    <sensor name="collision_sensor" type="contact">
+      <update_rate>100.0</update_rate>
+      <always_on>true</always_on>
+      <contact>
+        <collision>base_footprint_fixed_joint_lump__sjtu_drone_collision_collision</collision>
+      </contact>
+      <plugin name="collision_plugin" filename="libgazebo_ros_bumper.so">
+        <ros>
+          <namespace>${mp['namespace']}</namespace>
+          <!-- <remapping>bumper_states:=bumper_states</remapping> -->
         </ros>
         <frame_name>${mp['namespace']}/base_link</frame_name>
       </plugin>

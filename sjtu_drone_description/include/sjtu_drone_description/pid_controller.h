@@ -17,13 +17,13 @@
 
 
 #include <gazebo/gazebo.hh>
-#include <gazebo/common/Console.hh>
 
-class PIDController {
+class PIDController
+{
 public:
   PIDController();
   virtual ~PIDController();
-  virtual void Load(sdf::ElementPtr _sdf, const std::string& prefix = "");
+  virtual void Load(sdf::ElementPtr _sdf, const std::string & prefix = "");
 
   double gain_p;
   double gain_i;

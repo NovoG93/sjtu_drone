@@ -12,50 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLUGIN_DRONE_H
-#define PLUGIN_DRONE_H
+#ifndef GAZEBO_PLUGINS_DRONE_SIMPLE_H
+#define GAZEBO_PLUGINS_DRONE_SIMPLE_H
 
-#include "gazebo_ros/node.hpp"
-#include "gazebo/gazebo.hh"
-#include "gazebo/physics/physics.hh"
-#include "gazebo/common/Events.hh"
+#include "gazebo/physics/Link.hh"
+#include "gazebo/physics/Model.hh"
+#include "gazebo/physics/World.hh"
+#include "sdf/sdf.hh"
 
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp/callback_group.hpp>
+#include "sjtu_drone_description/plugin_drone_private.h"
 
-#include <geometry_msgs/msg/twist.hpp>
-#include <geometry_msgs/msg/pose.hpp>
-#include <sensor_msgs/msg/imu.hpp>
-#include <std_msgs/msg/empty.hpp>
-#include <std_msgs/msg/bool.hpp>
-#include <std_msgs/msg/string.hpp>
-#include <std_msgs/msg/int8.hpp>
-
-#include "pid_controller.h"
-
-#define LANDED_MODEL 0
-#define FLYING_MODEL 1
-#define TAKINGOFF_MODEL 2
-#define LANDING_MODEL 3
 
 using namespace std::placeholders;
 
 namespace gazebo_plugins
 {
 
-// Forward declaration of pimpl idiom
-class DroneSimpleControllerPrivate;
-
 class DroneSimpleController : public gazebo::ModelPlugin
 {
 public:
-  DroneSimpleController();
-  virtual ~DroneSimpleController();
+  DroneSimpleController(void);
+  virtual ~DroneSimpleController(void);
 
 protected:
   virtual void Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf);
-  virtual void Update();
-  virtual void Reset();
+  virtual void Update(const gazebo::common::UpdateInfo & _info);
+  virtual void Reset(void);
 
 private:
   std::unique_ptr<DroneSimpleControllerPrivate> impl_;  // Forward declaration of pimpl idiom
@@ -75,4 +57,4 @@ private:
 
 }
 
-#endif // PLUGIN_DRONE_HPP
+#endif // GAZEBO_PLUGINS_DRONE_SIMPLE_H

@@ -102,5 +102,12 @@ def generate_launch_description():
             executable="spawn_drone",
             arguments=[robot_desc, model_ns],
             output="screen"
-        )
+        ),
+
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            arguments=["0", "0", "0", "0", "0", "0", "world", f"{model_ns}/odom"],
+            output="screen"
+        ),
     ])

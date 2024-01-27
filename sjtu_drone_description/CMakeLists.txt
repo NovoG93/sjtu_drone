@@ -21,6 +21,10 @@ find_package(gazebo_dev REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 
 link_directories(${GAZEBO_LIBRARY_DIRS} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${OGRE_LIBRARY_DIRS})
@@ -37,9 +41,11 @@ include_directories(${OpenCV_INCLUDE_DIR}
 ################## 2. A simple model controller for the quadrotor #############
 add_library( plugin_drone SHARED
 src/plugin_drone.cpp
+src/plugin_drone_private.cpp
 src/pid_controller.cpp
-include/plugin_drone.h
-include/pid_controller.h
+include/sjtu_drone_description/plugin_drone.h
+include/sjtu_drone_description/plugin_drone_private.h
+include/sjtu_drone_description/pid_controller.h
 )
 
 
@@ -55,6 +61,10 @@ ament_target_dependencies(plugin_drone
   "std_msgs"
   "geometry_msgs"
   "sensor_msgs"
+  "nav_msgs"
+  "tf2"
+  "tf2_ros"
+  "tf2_geometry_msgs"
 )
 
 

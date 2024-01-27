@@ -149,4 +149,17 @@ For more see the following image:
 
 # Known Issues
 * No ROS communication between docker container and host
-* Mesh in rviz does not rotate with drone
+
+
+
+
+# Projects using this repository
+
+- [Drona🤖✈️](https://github.com/Gaurang-1402/Drona): is a drone control software that enables drones to be operated using Large Language Models, emphasizing ease of use and accessibility. It's designed to interact with real-world scenarios, specifically in fields like agriculture and disaster relief, where drones can be used for tasks like monitoring crop health or aiding in search and rescue operations, all controlled through simplified, multilingual commands.
+- [Window Washing Drone](https://github.com/ayushchakra/window-washing-drone): is a project that aims to automate the process of window washing using a drone. 
+- [ChatDrones](https://github.com/Gaurang-1402/ChatDrones): is a project that merges Large Language Models with drone control, enabling users to operate drones through simple natural language commands. It includes a user-friendly web application, allowing for easy input of commands in multiple languages and control of drone movements such as takeoff, landing, and directional navigation.
+
+
+
+
+
