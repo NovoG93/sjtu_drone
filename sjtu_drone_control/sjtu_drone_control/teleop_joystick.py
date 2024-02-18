@@ -88,7 +88,7 @@ class TeleopNode(Node):
             self.takeoff_publisher.publish(Empty())
         elif msg.buttons[1] == 1:
             # Land
-            self.publish_cmd_vel()
+            self.cmd_vel_publisher.publish(Twist())
             self.land_publisher.publish(Empty())
 
 
