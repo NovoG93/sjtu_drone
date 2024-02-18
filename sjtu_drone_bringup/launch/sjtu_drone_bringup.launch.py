@@ -14,16 +14,19 @@
 # limitations under the License.
 
 import os
-import yaml
 
+import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
-from launch_ros.actions import Node
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    controller = LaunchConfiguration('controller')
+    controller_launch_arg = DeclareLaunchArgument('controller', default_value='keyboard')
 
     sjtu_drone_bringup_path = get_package_share_directory('sjtu_drone_bringup')
 
@@ -38,9 +41,22 @@ def generate_launch_description():
     with open(yaml_file_path, 'r') as f:
         yaml_dict = yaml.load(f, Loader=yaml.FullLoader)
         model_ns = yaml_dict["namespace"]
-                              
+
+    controller_node = Node(
+        package="sjtu_drone_control",
+        executable="teleop",
+        namespace=model_ns,
+        output="screen",
+        prefix="xterm -e"
+    ) if controller == "keyboard" else Node(
+        package="sjtu_drone_control",
+        executable="teleop_joystick",
+        namespace=model_ns,
+        output="screen"
+    )
 
     return LaunchDescription([
+        controller_launch_arg,
         Node(
             package="rviz2",
             executable="rviz2",
@@ -48,7 +64,7 @@ def generate_launch_description():
             arguments=[
                 "-d", rviz_path
             ],
-            output="screen",
+            output="screen"
         ),
 
         IncludeLaunchDescription(
@@ -57,11 +73,5 @@ def generate_launch_description():
             )
         ),
 
-        Node(
-            package="sjtu_drone_control",
-            executable="teleop",
-            namespace=model_ns,
-            output="screen",
-            prefix="xterm -e"
-        )
+        controller_node
     ])
