@@ -25,64 +25,15 @@ class TeleopNode(Node):
         super().__init__('teleop_node')
 
         # Subscribers
-        self.joy_subscriber = self.create_subscription(Joy, 'joy', self.joy_callback, 10)
+        self.create_subscription(Joy, 'joy', self.joy_callback, 0)
 
         # Publishers
         self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
         self.takeoff_publisher = self.create_publisher(Empty, 'takeoff', 10)
         self.land_publisher = self.create_publisher(Empty, 'land', 10)
 
-        # Velocity parameters
-        self.linear_velocity = 0.0
-        self.angular_velocity = 0.0
-        self.linear_increment = 0.05
-        self.angular_increment = 0.05
-        self.max_linear_velocity = 1.0
-        self.max_angular_velocity = 1.0
-
-        self.joy_axes = []
-        self.joy_buttons = []
-
-        # Start a timer to listen to keyboard inputs
-        self.create_timer((0.005), self.read_joystick_input)
-
-    def clip(self, value: float, max_val: float) -> float:
-        return -max_val if value < -max_val else max_val if value > max_val else value
-
     def get_velocity_msg(self) -> str:
         return f"Linear Velocity: {self.linear_velocity}\nAngular Velocity: {self.angular_velocity}\n"
-
-    def read_joystick_input(self) -> None:
-        """
-        Read keyboard inputs and publish corresponding commands
-        """
-        while rclpy.ok():
-            # Print the instructions
-            print(self.get_velocity_msg())
-            # Handle velocity changes
-            self.linear_velocity = self.clip(self.linear_velocity + (self.joy_axes[3] * self.linear_increment),
-                                       self.max_linear_velocity)
-            self.angular_velocity = self.clip(self.angular_velocity + (self.joy_axes[3] * self.angular_increment),
-                                        self.max_angular_velocity)
-
-            linear_vec = Vector3()
-            linear_vec.x = self.joy_axes[1] * self.linear_velocity
-            linear_vec.y = self.joy_axes[0] * self.linear_velocity
-            linear_vec.z = self.linear_velocity
-
-            angular_vec = Vector3()
-            angular_vec.z = self.joy_axes[2] * self.angular_velocity
-
-            self.publish_cmd_vel(linear_vec, angular_vec)
-
-            # Handle other keys for different movements
-            if self.joy_buttons[0] == 1:
-                # Takeoff
-                self.takeoff_publisher.publish(Empty())
-            elif self.joy_buttons[1] == 1:
-                # Land
-                self.publish_cmd_vel()
-                self.land_publisher.publish(Empty())
 
     def joy_callback(self, msg: Joy) -> None:
         """
@@ -121,23 +72,36 @@ class TeleopNode(Node):
         4 	TRIGGERLEFT
         5 	TRIGGERRIGHT
         """
-        self.joy_axes = msg.axes
-        self.joy_buttons = msg.buttons
+        linear_vec = Vector3()
+        linear_vec.x = msg.axes[1]
+        linear_vec.y = msg.axes[0]
+        linear_vec.z = msg.axes[3]
 
-    def publish_cmd_vel(self, linear_vec: Vector3, angular_vec: Vector3) -> None:
-        """
-        Publish a Twist message to cmd_vel topic
-        """
-        twist = Twist(linear=linear_vec, angular=angular_vec)
-        self.cmd_vel_publisher.publish(twist)
+        angular_vec = Vector3()
+        angular_vec.z = msg.axes[2]
+
+        self.cmd_vel_publisher.publish(Twist(linear=linear_vec, angular=angular_vec))
+
+        # Handle other keys for different movements
+        if msg.buttons[0] == 1:
+            # Takeoff
+            self.takeoff_publisher.publish(Empty())
+        elif msg.buttons[1] == 1:
+            # Land
+            self.publish_cmd_vel()
+            self.land_publisher.publish(Empty())
 
 
 def main(args=None):
     rclpy.init(args=args)
-    teleop_node = TeleopNode()
-    rclpy.spin(teleop_node)
-    teleop_node.destroy_node()
-    rclpy.shutdown()
+
+    try:
+        teleop_node = TeleopNode()
+        rclpy.spin(teleop_node)
+
+    finally:
+        teleop_node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':

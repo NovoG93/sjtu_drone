@@ -23,6 +23,21 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+def get_teleop_controller(controller: str, namespace: str) -> Node:
+    node = Node(
+        package="sjtu_drone_control",
+        namespace=namespace,
+        output="screen"
+    )
+
+    if controller == 'joystick':
+        node.executable = "teleop_joystick"
+
+    else:
+        node.executable = "teleop"
+        node.prefix = "xterm-e"
+
+    return node
 
 def generate_launch_description():
     controller = LaunchConfiguration('controller')
@@ -42,21 +57,10 @@ def generate_launch_description():
         yaml_dict = yaml.load(f, Loader=yaml.FullLoader)
         model_ns = yaml_dict["namespace"]
 
-    controller_node = Node(
-        package="sjtu_drone_control",
-        executable="teleop",
-        namespace=model_ns,
-        output="screen",
-        prefix="xterm -e"
-    ) if controller == "keyboard" else Node(
-        package="sjtu_drone_control",
-        executable="teleop_joystick",
-        namespace=model_ns,
-        output="screen"
-    )
 
     return LaunchDescription([
         controller_launch_arg,
+
         Node(
             package="rviz2",
             executable="rviz2",
@@ -73,5 +77,14 @@ def generate_launch_description():
             )
         ),
 
-        controller_node
+        Node(
+            package='joy',
+            executable='joy_node',
+            name='joy',
+            namespace=model_ns,
+            output='screen',
+        
+        ),
+
+        get_teleop_controller(controller, model_ns)
     ])
