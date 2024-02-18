@@ -24,18 +24,22 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def get_teleop_controller(controller: str, namespace: str) -> Node:
-    node = Node(
-        package="sjtu_drone_control",
-        namespace=namespace,
-        output="screen"
-    )
-
-    if controller == 'joystick':
-        node.executable = "teleop_joystick"
+    if controller == "joystick":
+        node = Node(
+            package="sjtu_drone_control",
+            executable="teleop_joystick",
+            namespace=namespace,
+            output="screen"
+        )
 
     else:
-        node.executable = "teleop"
-        node.prefix = "xterm-e"
+        node = Node(
+            package="sjtu_drone_control",
+            executable="teleop",
+            namespace=namespace,
+            output="screen",
+            prefix="xterm -e"
+        )
 
     return node
 
