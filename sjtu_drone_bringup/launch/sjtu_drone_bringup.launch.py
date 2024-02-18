@@ -18,12 +18,14 @@ import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-def get_teleop_controller(controller: str, namespace: str) -> Node:
+def get_teleop_controller(context, *_, **kwargs) -> Node:
+    controller = context.launch_configurations["controller"]
+    namespace = kwargs["model_ns"]
+    
     if controller == "joystick":
         node = Node(
             package="sjtu_drone_control",
@@ -41,29 +43,32 @@ def get_teleop_controller(controller: str, namespace: str) -> Node:
             prefix="xterm -e"
         )
 
-    return node
+    return [node]
 
 def generate_launch_description():
-    controller = LaunchConfiguration('controller')
-    controller_launch_arg = DeclareLaunchArgument('controller', default_value='keyboard')
-
     sjtu_drone_bringup_path = get_package_share_directory('sjtu_drone_bringup')
 
     rviz_path = os.path.join(
         sjtu_drone_bringup_path, "rviz", "rviz.rviz"
     )
+    
     yaml_file_path = os.path.join(
         get_package_share_directory('sjtu_drone_bringup'),
         'config', 'drone.yaml'
     )
+
     model_ns = "drone"
+
     with open(yaml_file_path, 'r') as f:
         yaml_dict = yaml.load(f, Loader=yaml.FullLoader)
         model_ns = yaml_dict["namespace"]
 
-
     return LaunchDescription([
-        controller_launch_arg,
+        DeclareLaunchArgument(
+            "controller",
+            default_value="keyboard",
+            description="Type of controller: keyboard (default) or joystick"
+        ),
 
         Node(
             package="rviz2",
@@ -87,8 +92,10 @@ def generate_launch_description():
             name='joy',
             namespace=model_ns,
             output='screen',
-        
         ),
 
-        get_teleop_controller(controller, model_ns)
+        OpaqueFunction(
+            function=get_teleop_controller,
+            kwargs={'model_ns': model_ns}
+        )
     ])
