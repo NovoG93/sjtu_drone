@@ -32,7 +32,6 @@ class TeleopNode(Node):
         self.takeoff_publisher = self.create_publisher(Empty, 'takeoff', 10)
         self.land_publisher = self.create_publisher(Empty, 'land', 10)
 
-
     def joy_callback(self, msg: Joy) -> None:
         """
         Callback for joystick input
