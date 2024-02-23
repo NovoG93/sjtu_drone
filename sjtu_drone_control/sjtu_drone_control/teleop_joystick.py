@@ -32,8 +32,6 @@ class TeleopNode(Node):
         self.takeoff_publisher = self.create_publisher(Empty, 'takeoff', 10)
         self.land_publisher = self.create_publisher(Empty, 'land', 10)
 
-    def get_velocity_msg(self) -> str:
-        return f"Linear Velocity: {self.linear_velocity}\nAngular Velocity: {self.angular_velocity}\n"
 
     def joy_callback(self, msg: Joy) -> None:
         """
