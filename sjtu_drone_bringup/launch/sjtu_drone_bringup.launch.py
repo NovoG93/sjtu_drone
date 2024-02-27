@@ -31,7 +31,7 @@ def get_teleop_controller(context, *_, **kwargs) -> Node:
             package="sjtu_drone_control",
             executable="teleop_joystick",
             namespace=namespace,
-            output="screen"
+            output="screen",
         )
 
     else:
@@ -40,7 +40,7 @@ def get_teleop_controller(context, *_, **kwargs) -> Node:
             executable="teleop",
             namespace=namespace,
             output="screen",
-            prefix="xterm -e"
+            prefix="xterm -e",
         )
 
     return [node]
@@ -67,7 +67,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "controller",
             default_value="keyboard",
-            description="Type of controller: keyboard (default) or joystick"
+            description="Type of controller: keyboard (default) or joystick",
         ),
 
         Node(
@@ -77,7 +77,7 @@ def generate_launch_description():
             arguments=[
                 "-d", rviz_path
             ],
-            output="screen"
+            output="screen",
         ),
 
         IncludeLaunchDescription(
@@ -96,6 +96,6 @@ def generate_launch_description():
 
         OpaqueFunction(
             function=get_teleop_controller,
-            kwargs={'model_ns': model_ns}
-        )
+            kwargs={'model_ns': model_ns},
+        ),
     ])
