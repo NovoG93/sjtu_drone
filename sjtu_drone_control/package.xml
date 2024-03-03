@@ -11,10 +11,12 @@
   <depend>geometry_msgs</depend>
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
+  <depend>joy</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>  <maintainer email="georg.novtony@aon.at">ubuntu</maintainer>
+  <test_depend>ament_pep257</test_depend>
+  <maintainer email="georg.novtony@aon.at">ubuntu</maintainer>
 
   <test_depend>python3-pytest</test_depend>
 
