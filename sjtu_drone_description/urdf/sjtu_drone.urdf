@@ -52,7 +52,7 @@
   <gazebo>
     <plugin filename="libplugin_drone.so" name="simple_drone">
       <ros>
-        <namespace>/simple_drone</namespace>
+        <namespace>/drone</namespace>
         <remapping>cmd_vel:=cmd_vel</remapping>
         <remapping>imu:=imu</remapping>
         <remapping>sonar:=sonar</remapping>

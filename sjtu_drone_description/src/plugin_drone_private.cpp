@@ -348,12 +348,19 @@ void DroneSimpleControllerPrivate::PublishOdom(
   nav_msgs::msg::Odometry odom;
   odom.header.stamp =  gazebo_ros::Convert<builtin_interfaces::msg::Time>(current_time);
   std::string ns = ros_node_->get_namespace();
-  odom.header.frame_id = ns + "/odom";
-  odom.child_frame_id = ns + "/base_footprint";
+  odom.header.frame_id = "odom";
+  odom.child_frame_id = "base_link";
 
   // Set position and orientation from the drone's current state in UpdateDynamics
   odom.pose.pose.position = gazebo_ros::Convert<geometry_msgs::msg::Point>(pose.Pos());
   odom.pose.pose.orientation = gazebo_ros::Convert<geometry_msgs::msg::Quaternion>(pose.Rot());
+
+  odom.pose.covariance[0] = 1.0;
+  odom.pose.covariance[7] = 1.0;
+  odom.pose.covariance[14] = 1.0;
+  odom.pose.covariance[21] = 1.0;
+  odom.pose.covariance[28] = 1.0;
+  odom.pose.covariance[35] = 1.0;
 
   // Set velocity information from UpdateDynamics
   auto linear = model->WorldLinearVel();
@@ -370,7 +377,7 @@ void DroneSimpleControllerPrivate::PublishOdom(
   pub_odom_->publish(odom);
 
   // Publish the TF transformation
-  geometry_msgs::msg::TransformStamped transformStamped;
+  /*geometry_msgs::msg::TransformStamped transformStamped;
   transformStamped.header.stamp = odom.header.stamp;
   transformStamped.header.frame_id = ns + "/odom";
   transformStamped.child_frame_id = ns + "/base_footprint";
@@ -379,7 +386,7 @@ void DroneSimpleControllerPrivate::PublishOdom(
   transformStamped.transform.translation.z = odom.pose.pose.position.z;
   transformStamped.transform.rotation = odom.pose.pose.orientation;
 
-  tf_broadcaster_->sendTransform(transformStamped);
+  tf_broadcaster_->sendTransform(transformStamped);*/
 }
 
 
