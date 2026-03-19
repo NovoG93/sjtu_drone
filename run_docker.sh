@@ -1,15 +1,15 @@
 #!/bin/bash
 
 usage(){
-    echo "Usage: $0 [-r <humble|iron|rolling>]"
+    echo "Usage: $0 [-r <humble|iron|jazzy|rolling>]"
     exit 1
 }
 
-ROS_DISTRO=${ROS_DISTRO:-"iron"}  # [humble, iron, rolling]
+ROS_DISTRO=${ROS_DISTRO:-"jazzy"}  # [humble, iron, jazzy, rolling]
 while getopts "r:" opt; do
     case $opt in
         r)
-            if [ $OPTARG != "humble" ] && [ $OPTARG != "iron" ] && [ $OPTARG != "rolling" ]; then
+            if [ $OPTARG != "humble" ] && [ $OPTARG != "iron" ] && [ $OPTARG != "jazzy" ] && [ $OPTARG != "rolling" ]; then
                 echo "Invalid ROS distro: $OPTARG" >&2
                 usage
             fi

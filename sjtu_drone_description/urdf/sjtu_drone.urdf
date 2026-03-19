@@ -49,20 +49,11 @@
     <child link="bottom_cam_link"/>
   </joint>
   <link name="bottom_cam_link"/>
+  <!-- Drone physics plugin (gz-sim system, no <ros> block) -->
   <gazebo>
-    <plugin filename="libplugin_drone.so" name="simple_drone">
-      <ros>
-        <namespace>/simple_drone</namespace>
-        <remapping>cmd_vel:=cmd_vel</remapping>
-        <remapping>imu:=imu</remapping>
-        <remapping>sonar:=sonar</remapping>
-        <remapping>camera_front:=camera_front</remapping>
-        <remapping>camera_bottom:=camera_bottom</remapping>
-        <remapping>camera_front_info:=camera_front_info</remapping>
-        <remapping>camera_bottom_info:=camera_bottom_info</remapping>
-        <remapping>gps:=gps</remapping>
-      </ros>
+    <plugin filename="libplugin_drone.so" name="sjtu_drone::DroneSimpleController">
       <bodyName>base_link</bodyName>
+      <pub_odom>true</pub_odom>
       <rollpitchProportionalGain>10.0</rollpitchProportionalGain>
       <rollpitchDifferentialGain>5.0</rollpitchDifferentialGain>
       <rollpitchLimit>0.5</rollpitchLimit>
@@ -90,53 +81,43 @@
       <motionDriftNoiseTime>50</motionDriftNoiseTime>
     </plugin>
   </gazebo>
-  <!-- Sensors -->
-  <!-- IMU sensor in 100fps -->
+  <!-- Sensors (gz-sim native, no Classic plugin children) -->
+  <!-- IMU sensor -->
   <gazebo reference="base_link">
     <sensor name="sensor_imu" type="imu">
-      <always_on> 1 </always_on>
-      <visualize>1</visualize>
-      <update_rate> 100 </update_rate>
-      <pose> 0 0 0 0 0 0 </pose>
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
       <imu>
-        <noise>
-          <type>gaussian</type>
-          <rate>
-            <mean> 0 </mean>
-            <stddev> 0 </stddev>
-          </rate>
-          <accel>
-            <mean> 0 </mean>
-            <stddev> 0.00 </stddev>
-          </accel>
-        </noise>
+        <angular_velocity>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.01</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.01</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.01</stddev></noise></z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.01</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.01</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.01</stddev></noise></z>
+        </linear_acceleration>
       </imu>
-      <plugin filename="libgazebo_ros_imu_sensor.so" name="imu">
-        <ros>
-          <namespace>/simple_drone</namespace>
-        </ros>
-        <initial_orientation_as_reference>false</initial_orientation_as_reference>
-        <frame_name>/simple_drone/base_link</frame_name>
-      </plugin>
     </sensor>
   </gazebo>
-  <!-- Sonar sensor in 100fps -->
+  <!-- Sonar (gpu_lidar in gz-sim, replaces Classic ray) -->
   <gazebo reference="sonar_link">
-    <sensor name="sonar" type="ray">
-      <always_on>1</always_on>
-      <visualize>1</visualize>
+    <sensor name="sonar" type="gpu_lidar">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
       <update_rate>30</update_rate>
-      <ray>
+      <lidar>
         <scan>
           <horizontal>
             <samples>5</samples>
-            <resolution>1.000000</resolution>
+            <resolution>1</resolution>
             <min_angle>-0.12</min_angle>
             <max_angle>0.12</max_angle>
           </horizontal>
           <vertical>
             <samples>5</samples>
-            <resolution>1.000000</resolution>
+            <resolution>1</resolution>
             <min_angle>-0.12</min_angle>
             <max_angle>0.12</max_angle>
           </vertical>
@@ -148,25 +129,17 @@
         </range>
         <noise>
           <type>gaussian</type>
-          <mean>0.0</mean>
+          <mean>0</mean>
           <stddev>0.01</stddev>
         </noise>
-      </ray>
-      <plugin filename="libgazebo_ros_ray_sensor.so" name="sonar">
-        <ros>
-          <namespace>/simple_drone</namespace>
-          <!-- <remapping>~/out:=sonar</remapping> -->
-        </ros>
-        <frame_name>/simple_drone/sonar_link</frame_name>
-        <output_type>sensor_msgs/Range</output_type>
-        <radiation_type>ultrasound</radiation_type>
-      </plugin>
+      </lidar>
     </sensor>
   </gazebo>
+  <!-- Front camera -->
   <gazebo reference="front_cam_link">
     <sensor name="front_camera" type="camera">
-      <always_on>1</always_on>
-      <visualize>1</visualize>
+      <always_on>true</always_on>
+      <visualize>true</visualize>
       <update_rate>60</update_rate>
       <camera>
         <horizontal_fov>2.09</horizontal_fov>
@@ -181,27 +154,17 @@
         </clip>
         <noise>
           <type>gaussian</type>
-          <mean>0.0</mean>
+          <mean>0</mean>
           <stddev>0.005</stddev>
         </noise>
       </camera>
-      <plugin filename="libgazebo_ros_camera.so" name="camera_front">
-        <ros>
-          <namespace>/simple_drone</namespace>
-          <!-- <remapping>~/image_raw:=camera_front</remapping>
-          <remapping>~/camera_info:=camera_front_info</remapping> -->
-        </ros>
-        <frame_name>/simple_drone/front_cam_link</frame_name>
-        <camera_name>front</camera_name>
-        <hack_baseline>0.07</hack_baseline>
-      </plugin>
     </sensor>
   </gazebo>
-  <!-- downward looking camera -->
+  <!-- Bottom camera (downward looking) -->
   <gazebo reference="bottom_cam_link">
     <sensor name="down_camera" type="camera">
-      <always_on>1</always_on>
-      <visualize>1</visualize>
+      <always_on>true</always_on>
+      <visualize>true</visualize>
       <update_rate>15</update_rate>
       <camera>
         <horizontal_fov>1.047</horizontal_fov>
@@ -216,49 +179,27 @@
         </clip>
         <noise>
           <type>gaussian</type>
-          <mean>0.0</mean>
+          <mean>0</mean>
           <stddev>0.005</stddev>
         </noise>
       </camera>
-      <plugin filename="libgazebo_ros_camera.so" name="camera_bottom">
-        <ros>
-          <namespace>/simple_drone</namespace>
-          <!-- <remapping>image_raw:=camera_bottom</remapping>
-          <remapping>camera_info:=camera_bottom_info</remapping> -->
-        </ros>
-        <frame_name>/simple_drone/bottom_cam_link</frame_name>
-        <camera_name>bottom</camera_name>
-        <hack_baseline>0.07</hack_baseline>
-      </plugin>
     </sensor>
   </gazebo>
+  <!-- NavSat (GPS) sensor -->
   <gazebo reference="base_link">
-    <sensor name="gps" type="gps">
-      <always_on>1</always_on>
+    <sensor name="navsat_sensor" type="navsat">
+      <always_on>true</always_on>
       <update_rate>30</update_rate>
-      <gps>
-        <position_sensing>
-          <horizontal>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>2e-4</stddev>
-            </noise>
-          </horizontal>
-          <vertical>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>2e-4</stddev>
-            </noise>
-          </vertical>
-        </position_sensing>
-      </gps>
-      <plugin filename="libgazebo_ros_gps_sensor.so" name="gps">
-        <ros>
-          <namespace>/simple_drone</namespace>
-          <remapping>~/out:=~/nav</remapping>
-        </ros>
-        <frame_name>/simple_drone/base_link</frame_name>
-      </plugin>
+    </sensor>
+  </gazebo>
+  <!-- Contact sensor -->
+  <gazebo reference="base_link">
+    <sensor name="collision_sensor" type="contact">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <contact>
+        <collision>base_footprint_fixed_joint_lump__sjtu_drone_collision_collision</collision>
+      </contact>
     </sensor>
   </gazebo>
 </robot>

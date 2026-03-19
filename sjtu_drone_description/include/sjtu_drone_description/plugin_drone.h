@@ -12,49 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef GAZEBO_PLUGINS_DRONE_SIMPLE_H
-#define GAZEBO_PLUGINS_DRONE_SIMPLE_H
+#ifndef SJTU_DRONE_DESCRIPTION__PLUGIN_DRONE_H_
+#define SJTU_DRONE_DESCRIPTION__PLUGIN_DRONE_H_
 
-#include "gazebo/physics/Link.hh"
-#include "gazebo/physics/Model.hh"
-#include "gazebo/physics/World.hh"
-#include "sdf/sdf.hh"
+#include <memory>
+#include <string>
 
-#include "sjtu_drone_description/plugin_drone_private.h"
+#include <gz/sim/System.hh>
 
-
-using namespace std::placeholders;
-
-namespace gazebo_plugins
+namespace sjtu_drone
 {
 
-class DroneSimpleController : public gazebo::ModelPlugin
+// Forward declare
+class DroneSimpleControllerPrivate;
+
+class DroneSimpleController
+  : public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
 {
 public:
-  DroneSimpleController(void);
-  virtual ~DroneSimpleController(void);
+  DroneSimpleController();
+  ~DroneSimpleController() override;
 
-protected:
-  virtual void Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf);
-  virtual void Update(const gazebo::common::UpdateInfo & _info);
-  virtual void Reset(void);
+  void Configure(
+    const gz::sim::Entity &_entity,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    gz::sim::EntityComponentManager &_ecm,
+    gz::sim::EventManager &_eventMgr) override;
+
+  void PreUpdate(
+    const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm) override;
 
 private:
-  std::unique_ptr<DroneSimpleControllerPrivate> impl_;  // Forward declaration of pimpl idiom
-
-  gazebo::event::ConnectionPtr updateConnection; // Pointer to the update event connection
-
-  /// \brief The parent World
-  gazebo::physics::WorldPtr world;
-
-  /// \brief The link referred to by this plugin
-  gazebo::physics::LinkPtr link;
-  std::string link_name_;
-
-  /// \brief save last_time
-  gazebo::common::Time last_time;
+  std::unique_ptr<DroneSimpleControllerPrivate> impl_;
 };
 
-}
+}  // namespace sjtu_drone
 
-#endif // GAZEBO_PLUGINS_DRONE_SIMPLE_H
+#endif  // SJTU_DRONE_DESCRIPTION__PLUGIN_DRONE_H_

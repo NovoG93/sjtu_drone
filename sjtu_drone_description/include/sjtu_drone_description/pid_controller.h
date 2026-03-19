@@ -16,7 +16,7 @@
 #define PIDCONTROLLER_H
 
 
-#include <gazebo/gazebo.hh>
+#include <sdf/sdf.hh>
 
 class PIDController
 {

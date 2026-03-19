@@ -15,37 +15,38 @@
 
 import os
 
-import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+import yaml
 
 
 def get_teleop_controller(context, *_, **kwargs) -> Node:
-    controller = context.launch_configurations["controller"]
-    namespace = kwargs["model_ns"]
+    controller = context.launch_configurations['controller']
+    namespace = kwargs['model_ns']
 
-    if controller == "joystick":
+    if controller == 'joystick':
         node = Node(
-            package="sjtu_drone_control",
-            executable="teleop_joystick",
+            package='sjtu_drone_control',
+            executable='teleop_joystick',
             namespace=namespace,
-            output="screen",
+            output='screen',
         )
 
     else:
         node = Node(
-            package="sjtu_drone_control",
-            executable="teleop",
+            package='sjtu_drone_control',
+            executable='teleop',
             namespace=namespace,
-            output="screen",
-            prefix="xterm -e",
+            output='screen',
+            prefix='xterm -e',
         )
 
     return [node]
+
 
 def rviz_node_generator(context, rviz_path):
     """Return a Node action for RViz, omitting --fixed-frame if empty."""
@@ -71,7 +72,7 @@ def generate_launch_description():
     sjtu_drone_bringup_path = get_package_share_directory('sjtu_drone_bringup')
 
     rviz_path = os.path.join(
-        sjtu_drone_bringup_path, "rviz", "rviz.rviz"
+        sjtu_drone_bringup_path, 'rviz', 'rviz.rviz'
     )
 
     yaml_file_path = os.path.join(
@@ -79,17 +80,17 @@ def generate_launch_description():
         'config', 'drone.yaml'
     )
 
-    model_ns = "drone"
+    model_ns = 'drone'
 
     with open(yaml_file_path, 'r') as f:
-        yaml_dict = yaml.load(f, Loader=yaml.FullLoader)
-        model_ns = yaml_dict["namespace"]
+        yaml_dict = yaml.safe_load(f)
+        model_ns = yaml_dict['namespace']
 
     return LaunchDescription([
         DeclareLaunchArgument(
-            "controller",
-            default_value="keyboard",
-            description="Type of controller: keyboard (default) or joystick",
+            'controller',
+            default_value='keyboard',
+            description='Type of controller: keyboard (default) or joystick',
         ),
 
         DeclareLaunchArgument(

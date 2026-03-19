@@ -1,5 +1,5 @@
 # ROS namespace for the drone. All topics and tf frames will be prefixed with this namespace.
-namespace: /simple_drone
+namespace: simple_drone
 
 # Proportional gain for roll and pitch PID controllers. Controls the drone's response to roll and pitch errors.
 rollpitchProportionalGain: 10.0

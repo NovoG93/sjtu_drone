@@ -1,4 +1,4 @@
-<sdf version='1.7'>
+<sdf version='1.9'>
   <model name='sjtu_drone'>
     <link name='base_footprint'>
       <inertial>
@@ -18,7 +18,7 @@
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
-            <uri>model://sjtu_drone/quadrotor_4.dae</uri>
+            <uri>quadrotor_4.dae</uri>
           </mesh>
         </geometry>
       </collision>
@@ -27,67 +27,53 @@
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
-              <uri>model://sjtu_drone/quadrotor_4.dae</uri>
+            <uri>quadrotor_4.dae</uri>
           </mesh>
         </geometry>
       </visual>
+
+      <!-- IMU sensor (gz-sim native, no plugin child) -->
       <sensor name='sensor_imu' type='imu'>
-        <always_on>1</always_on>
-        <visualize>1</visualize>
+        <always_on>true</always_on>
         <update_rate>100</update_rate>
         <imu>
-          <noise>
-            <type>gaussian</type>
-            <rate>
-              <mean>0</mean>
-              <stddev>0</stddev>
-            </rate>
-            <accel>
-              <mean>0</mean>
-              <stddev>0.00</stddev>
-            </accel>
-          </noise>
+          <angular_velocity>
+            <x><noise type='gaussian'><mean>0</mean><stddev>0.01</stddev></noise></x>
+            <y><noise type='gaussian'><mean>0</mean><stddev>0.01</stddev></noise></y>
+            <z><noise type='gaussian'><mean>0</mean><stddev>0.01</stddev></noise></z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x><noise type='gaussian'><mean>0</mean><stddev>0.01</stddev></noise></x>
+            <y><noise type='gaussian'><mean>0</mean><stddev>0.01</stddev></noise></y>
+            <z><noise type='gaussian'><mean>0</mean><stddev>0.01</stddev></noise></z>
+          </linear_acceleration>
         </imu>
-        <plugin name='imu' filename='libgazebo_ros_imu_sensor.so'>
-          <ros>
-            <namespace>/simple_drone</namespace>
-          </ros>
-          <initial_orientation_as_reference>0</initial_orientation_as_reference>
-          <frame_name>/simple_drone/base_link</frame_name>
-        </plugin>
         <pose>0 0 0 0 -0 0</pose>
+        <gz_frame_id>base_link</gz_frame_id>
       </sensor>
-      <sensor name='gps' type='gps'>
-        <always_on>1</always_on>
+
+      <!-- NavSat (GPS) sensor (gz-sim native) -->
+      <sensor name='navsat_sensor' type='navsat'>
+        <always_on>true</always_on>
         <update_rate>30</update_rate>
-        <gps>
-          <position_sensing>
-            <horizontal>
-              <noise type='gaussian'>
-                <mean>0</mean>
-                <stddev>0.0002</stddev>
-              </noise>
-            </horizontal>
-            <vertical>
-              <noise type='gaussian'>
-                <mean>0</mean>
-                <stddev>0.0002</stddev>
-              </noise>
-            </vertical>
-          </position_sensing>
-        </gps>
-        <plugin name='gps' filename='libgazebo_ros_gps_sensor.so'>
-          <ros>
-            <namespace>/simple_drone</namespace>
-            <remapping>~/out:=~/nav</remapping>
-          </ros>
-          <frame_name>/simple_drone/base_link</frame_name>
-        </plugin>
         <pose>0 0 0 0 -0 0</pose>
+        <gz_frame_id>base_link</gz_frame_id>
       </sensor>
+
+      <!-- Contact sensor -->
+      <sensor name='collision_sensor' type='contact'>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <contact>
+          <collision>base_footprint_fixed_joint_lump__sjtu_drone_collision_collision</collision>
+        </contact>
+        <gz_frame_id>base_link</gz_frame_id>
+      </sensor>
+
+      <!-- Bottom camera (downward looking) -->
       <sensor name='down_camera' type='camera'>
-        <always_on>1</always_on>
-        <visualize>1</visualize>
+        <always_on>true</always_on>
+        <visualize>true</visualize>
         <update_rate>15</update_rate>
         <camera>
           <horizontal_fov>1.047</horizontal_fov>
@@ -106,19 +92,14 @@
             <stddev>0.005</stddev>
           </noise>
         </camera>
-        <plugin name='camera_bottom' filename='libgazebo_ros_camera.so'>
-          <ros>
-            <namespace>/simple_drone</namespace>
-          </ros>
-          <frame_name>/simple_drone/bottom_cam_link</frame_name>
-          <camera_name>bottom</camera_name>
-          <hack_baseline>0.07</hack_baseline>
-        </plugin>
         <pose>0 0 0 3.14159 1.57079 3.14159</pose>
+        <gz_frame_id>bottom_cam_link</gz_frame_id>
       </sensor>
+
+      <!-- Front camera -->
       <sensor name='front_camera' type='camera'>
-        <always_on>1</always_on>
-        <visualize>1</visualize>
+        <always_on>true</always_on>
+        <visualize>true</visualize>
         <update_rate>60</update_rate>
         <camera>
           <horizontal_fov>2.09</horizontal_fov>
@@ -137,21 +118,16 @@
             <stddev>0.005</stddev>
           </noise>
         </camera>
-        <plugin name='camera_front' filename='libgazebo_ros_camera.so'>
-          <ros>
-            <namespace>/simple_drone</namespace>
-          </ros>
-          <frame_name>/simple_drone/front_cam_link</frame_name>
-          <camera_name>front</camera_name>
-          <hack_baseline>0.07</hack_baseline>
-        </plugin>
         <pose>0.2 0 0 0 -0 0</pose>
+        <gz_frame_id>front_cam_link</gz_frame_id>
       </sensor>
-      <sensor name='sonar' type='ray'>
-        <always_on>1</always_on>
-        <visualize>1</visualize>
+
+      <!-- Sonar (gpu_lidar in gz-sim, replaces Classic ray) -->
+      <sensor name='sonar' type='gpu_lidar'>
+        <always_on>true</always_on>
+        <visualize>true</visualize>
         <update_rate>30</update_rate>
-        <ray>
+        <lidar>
           <scan>
             <horizontal>
               <samples>5</samples>
@@ -176,31 +152,17 @@
             <mean>0</mean>
             <stddev>0.01</stddev>
           </noise>
-        </ray>
-        <plugin name='sonar' filename='libgazebo_ros_ray_sensor.so'>
-          <ros>
-            <namespace>/simple_drone</namespace>
-          </ros>
-          <frame_name>/simple_drone/sonar_link</frame_name>
-          <output_type>sensor_msgs/Range</output_type>
-          <radiation_type>ultrasound</radiation_type>
-        </plugin>
+        </lidar>
         <pose>0 0 0 3.14159 1.57079 3.14159</pose>
+        <gz_frame_id>sonar_link</gz_frame_id>
       </sensor>
     </link>
-    <static>0</static>
-    <plugin name='simple_drone' filename='libplugin_drone.so'>
-      <ros>
-        <namespace>/simple_drone</namespace>
-        <remapping>cmd_vel:=cmd_vel</remapping>
-        <remapping>imu:=imu</remapping>
-        <remapping>sonar:=sonar</remapping>
-        <remapping>camera_front:=camera_front</remapping>
-        <remapping>camera_bottom:=camera_bottom</remapping>
-        <remapping>camera_front_info:=camera_front_info</remapping>
-        <remapping>camera_bottom_info:=camera_bottom_info</remapping>
-        <remapping>gps:=gps</remapping>
-      </ros>
+
+    <static>false</static>
+
+    <!-- Drone physics plugin (gz-sim system, no <ros> block) -->
+    <plugin name='sjtu_drone::DroneSimpleController' filename='libplugin_drone.so'>
+      <bodyName>base_footprint</bodyName>
       <rollpitchProportionalGain>10.0</rollpitchProportionalGain>
       <rollpitchDifferentialGain>5.0</rollpitchDifferentialGain>
       <rollpitchLimit>0.5</rollpitchLimit>
@@ -226,7 +188,6 @@
       <motionSmallNoise>0.0</motionSmallNoise>
       <motionDriftNoise>0.0</motionDriftNoise>
       <motionDriftNoiseTime>50</motionDriftNoiseTime>
-      <bodyName>base_footprint</bodyName>
       <xyzOffset>0 0 0</xyzOffset>
       <rpyOffset>0 -0 0</rpyOffset>
     </plugin>

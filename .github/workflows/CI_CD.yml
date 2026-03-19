@@ -17,6 +17,8 @@ jobs:
             ros_distribution: "iron"
           - os: ubuntu-22.04
             ros_distribution: "rolling"
+          - os: ubuntu-24.04
+            ros_distribution: "jazzy"
       fail-fast: false
     outputs:
       build_step_outcome: ${{ steps.build_step.outcome }}
@@ -77,6 +79,8 @@ jobs:
             ros_distribution: "iron"
           - os: ubuntu-22.04
             ros_distribution: "rolling"
+          - os: ubuntu-24.04
+            ros_distribution: "jazzy"
       fail-fast: false
     needs: build
     if: needs.build.outputs.build_step_outcome == 'success'

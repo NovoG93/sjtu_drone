@@ -13,40 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# -*- coding: utf-8 -*-
+"""Spawn drone in gz-sim using ros_gz_sim create."""
+
+import subprocess
 import sys
-import rclpy
-from gazebo_msgs.srv import SpawnEntity
+import tempfile
 
 
-def main(args=None):
-    rclpy.init(args=args)
-    node = rclpy.create_node('spawn_drone')
-    cli = node.create_client(SpawnEntity, '/spawn_entity')
+def main():
+    if len(sys.argv) < 3:
+        print('Usage: spawn_drone <urdf_xml> <model_name>')
+        sys.exit(1)
 
-    content = sys.argv[1]
-    namespace = sys.argv[2]
+    xml = sys.argv[1]
+    name = sys.argv[2]
 
-    req = SpawnEntity.Request()
-    req.name = namespace
-    req.xml = content
-    req.robot_namespace = namespace
-    req.reference_frame = "world"
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.urdf', delete=False) as f:
+        f.write(xml)
+        tmpfile = f.name
 
-    while not cli.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
-
-    future = cli.call_async(req)
-    rclpy.spin_until_future_complete(node, future)
-
-    if future.result() is not None:
-        node.get_logger().info(
-            'Result ' + str(future.result().success) + " " + future.result().status_message)
-    else:
-        node.get_logger().info('Service call failed %r' % (future.exception(),))
-
-    node.destroy_node()
-    rclpy.shutdown()
+    subprocess.run(
+        ['ros2', 'run', 'ros_gz_sim', 'create', '-file', tmpfile, '-name', name],
+        check=True,
+    )
 
 
 if __name__ == '__main__':

@@ -5,116 +5,105 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-include (FindPkgConfig)
-if (PKG_CONFIG_FOUND)
-    pkg_check_modules(OGRE OGRE)
-    pkg_check_modules(OGRE-Terrain OGRE-Terrain)
-endif()
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_ros REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(gazebo_ros REQUIRED)
-find_package(gazebo_plugins REQUIRED)
-find_package(gazebo_dev REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 
+# Gazebo Harmonic (gz-sim8) — try vendor packages first, fall back to system
+find_package(gz_sim_vendor QUIET)
+find_package(gz-sim8 REQUIRED)
+find_package(gz_plugin_vendor QUIET)
+find_package(gz-plugin2 REQUIRED)
 
-link_directories(${GAZEBO_LIBRARY_DIRS} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${OGRE_LIBRARY_DIRS})
-include_directories(${OpenCV_INCLUDE_DIR}
-                    ${Boost_INCLUDE_DIR}
-                    ${catkin_INCLUDE_DIRS}
-                    ${GAZEBO_INCLUDE_DIRS}
-                    ${OGRE_INCLUDE_DIRS}
-                    ${OGRE-Terrain_INCLUDE_DIRS}
-                    include)
-
-
-
-################## 2. A simple model controller for the quadrotor #############
-add_library( plugin_drone SHARED
-src/plugin_drone.cpp
-src/plugin_drone_private.cpp
-src/pid_controller.cpp
-include/sjtu_drone_description/plugin_drone.h
-include/sjtu_drone_description/plugin_drone_private.h
-include/sjtu_drone_description/pid_controller.h
+################## Minimal gz-sim8 System plugin (Phase 1 skeleton) ############
+add_library(plugin_drone SHARED
+  src/plugin_drone_gz.cpp
+  src/pid_controller.cpp
+  src/plugin_drone_private.cpp
 )
 
-
-target_compile_features(plugin_drone PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_include_directories(plugin_drone PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+target_compile_features(plugin_drone PUBLIC cxx_std_17)
+target_include_directories(plugin_drone PRIVATE include)
+target_link_libraries(plugin_drone
+  gz-sim8::gz-sim8
+  gz-plugin2::gz-plugin2
+)
 ament_target_dependencies(plugin_drone
-  "rclcpp"
-  "gazebo_ros"
-  "gazebo_plugins"
-  "gazebo_dev"
-  "std_msgs"
-  "geometry_msgs"
-  "sensor_msgs"
-  "nav_msgs"
-  "tf2"
-  "tf2_ros"
-  "tf2_geometry_msgs"
+  rclcpp std_msgs geometry_msgs sensor_msgs nav_msgs tf2_ros tf2_geometry_msgs
 )
 
-
-# Causes the visibility macros to use dllexport rather than dllimport,
-# which is appropriate when building the dll but not consuming it.
-target_compile_definitions(plugin_drone PRIVATE "SJTU_DRONE_BUILDING_LIBRARY")
-
-install(
-  DIRECTORY include/
+install(TARGETS plugin_drone
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(DIRECTORY include/
   DESTINATION include
 )
-install(
-  TARGETS plugin_drone
-  EXPORT export_${PROJECT_NAME}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
+install(DIRECTORY models urdf worlds
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
   set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_pid_controller test/test_pid_controller.cpp src/pid_controller.cpp)
+  target_include_directories(test_pid_controller PRIVATE include)
+  target_link_libraries(test_pid_controller gz-sim8::gz-sim8)
+
+  ament_add_gtest(test_plugin_drone_configure
+    test/test_plugin_drone_configure.cpp
+    src/pid_controller.cpp
+    src/plugin_drone_private.cpp
+    src/plugin_drone_gz.cpp
+  )
+  target_include_directories(test_plugin_drone_configure PRIVATE include)
+  target_link_libraries(test_plugin_drone_configure gz-sim8::gz-sim8)
+  ament_target_dependencies(test_plugin_drone_configure
+    rclcpp std_msgs geometry_msgs sensor_msgs nav_msgs tf2_ros tf2_geometry_msgs
+  )
+
+  ament_add_gtest(test_plugin_drone_dynamics
+    test/test_plugin_drone_dynamics.cpp
+    src/pid_controller.cpp
+    src/plugin_drone_private.cpp
+    src/plugin_drone_gz.cpp
+  )
+  target_include_directories(test_plugin_drone_dynamics PRIVATE include)
+  target_link_libraries(test_plugin_drone_dynamics gz-sim8::gz-sim8)
+  ament_target_dependencies(test_plugin_drone_dynamics
+    rclcpp std_msgs geometry_msgs sensor_msgs nav_msgs tf2_ros tf2_geometry_msgs
+  )
+
+  ament_add_gtest(test_world_loads test/test_world_loads.cpp)
+  target_include_directories(test_world_loads PRIVATE include)
+  target_link_libraries(test_world_loads gz-sim8::gz-sim8)
+  target_compile_definitions(test_world_loads PRIVATE WORLD_DIR="${CMAKE_CURRENT_SOURCE_DIR}/worlds")
+
+  ament_add_gtest(test_model_sdf test/test_model_sdf.cpp)
+  target_include_directories(test_model_sdf PRIVATE include)
+  target_link_libraries(test_model_sdf gz-sim8::gz-sim8)
+  target_compile_definitions(test_model_sdf PRIVATE
+    MODEL_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models/sjtu_drone"
+  )
+
+  find_package(tinyxml2 REQUIRED)
+  ament_add_gtest(test_integration test/test_integration.cpp)
+  target_include_directories(test_integration PRIVATE include)
+  target_link_libraries(test_integration tinyxml2::tinyxml2)
+  target_compile_definitions(test_integration PRIVATE
+    SRC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src"
+    WORLD_DIR="${CMAKE_CURRENT_SOURCE_DIR}/worlds"
+    MODEL_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models/sjtu_drone"
+  )
 endif()
 
-set_target_properties(plugin_drone
-    PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY
-    ${PROJECT_SOURCE_DIR}/plugins
-)
-
-ament_export_include_directories(
-  include
-)
-ament_export_libraries(
-  plugin_drone
-)
-ament_export_targets(
-  export_${PROJECT_NAME}
-)
-
-
-install(
-  DIRECTORY models urdf worlds
-  DESTINATION share/${PROJECT_NAME}
-)
 ament_package()

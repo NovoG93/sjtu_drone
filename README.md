@@ -8,7 +8,7 @@ The acronym 'sjtu' stands for Shanghai Jiao Tong University. This package has be
 
 # Requirements
 
-This package is tested with ROS 2 (Ubuntu 22.04) and Gazebo 11.
+This package is compatible with ROS 2 Jazzy (Ubuntu 24.04) and Gazebo Harmonic (gz-sim8). Sensor data is published natively via gz-transport and bridged to ROS 2 using `ros_gz_bridge`.
 
 # Downloading and building
 
@@ -18,18 +18,17 @@ cd ~/ros2_ws/src && ln -s ~/git/sjtu_drone
 cd .. && rosdep install -r -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO && colcon build --packages-select-regex sjtu*
 ```
 
-To use the playground.world file (as depicted below) make sure to install the common gazebo models, for more see the [Readme in sjtu_drone_description](./sjtu_drone_description/README.md).
-
 ## Drone Topics
 
 ### Sensors
-The folowing sensors are currently implemented:
+Sensor data is published by Gazebo Harmonic via gz-transport and bridged to ROS 2 topics using `ros_gz_bridge`. The following sensor topics are available:
 - ~/front/image_raw [__sensor_msgs/msg/Image__]
+- ~/front/camera_info [__sensor_msgs/msg/CameraInfo__]
 - ~/bottom/image_raw [__sensor_msgs/msg/Image__]
-- ~/sonar/out [__sensor_msgs/msg/Range__]
-- ~/imu/out [__sensor_msgs/msg/Imu__]
-- ~/gps/nav [__sensor_msgs/msg/NavSatFix__]
-- ~/gps/vel [__geometry_msgs/msg/TwistStamped__]
+- ~/bottom/camera_info [__sensor_msgs/msg/CameraInfo__]
+- ~/sonar [__sensor_msgs/msg/LaserScan__]
+- ~/imu [__sensor_msgs/msg/Imu__]
+- ~/navsat [__sensor_msgs/msg/NavSatFix__]
 - ~/joint_states [__sensor_msgs/msg/JointState__]
 
 ### Control 
