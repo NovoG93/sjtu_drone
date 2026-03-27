@@ -36,6 +36,7 @@ xhost +local:docker
 docker run \
     -it --rm \
     $VOLUMES \
+    --shm-size=1g \
     -v ${XSOCK}:${XSOCK} \
     -v ${XAUTH}:${XAUTH} \
     -e DISPLAY=${DISPLAY} \

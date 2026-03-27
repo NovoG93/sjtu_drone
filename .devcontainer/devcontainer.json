@@ -1,20 +1,20 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-    "image": "georgno/sjtu_drone:ros2-jazzy",
+	"image": "georgno/sjtu_drone:ros2-jazzy",
 	"remoteUser": "root",
+	"postStartCommand": "bash -lc \"grep -qxF 'source /opt/ros/jazzy/setup.bash' /root/.bashrc || echo 'source /opt/ros/jazzy/setup.bash' >> /root/.bashrc\"",
+	// "onCreateCommand": "/ros_entrypoint.sh bash -lc 'cd /root/sim_ws && colcon build || true'",
 	// "initializeCommand": "xhost +",
-	// "onCreateCommand": "sudo bash /entrypoint.sh &",
 	"workspaceMount": "source=${localWorkspaceFolder},target=/root/sim_ws/src/sjtu_drone,type=bind,consistency=cached",
 	"workspaceFolder": "/root/sim_ws",
-	// mount Jupyter/src/ros2 to ~/ros2_ws/src
 	"runArgs": [
-		"--shm-size=512",
+		"--shm-size=1g",
 		"--privileged",
 		"--gpus=all"
 		// "--volume=/tmp/.X11-unix:/tmp/.X11-unix"
 	],
 	"containerEnv": {
-		"DISPLAY": "${localEnv:DISPLAY}",
+		"DISPLAY": "${localEnv:DISPLAY}"
 		// "LIBGL_ALWAYS_SOFTWARE": "1" // Needed for software rendering of opengl
 	},
 	// Set *default* container specific settings.json values on container create.
