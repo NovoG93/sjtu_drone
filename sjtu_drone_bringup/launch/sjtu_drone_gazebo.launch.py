@@ -118,6 +118,7 @@ def generate_launch_description():
         launch_arguments={
             'gz_args': ['-r ', LaunchConfiguration('world', default=world_file_default)],
             'on_exit_shutdown': 'true',
+            'extra_gzserver_args': '--verbose'
         }.items(),
     )
 
