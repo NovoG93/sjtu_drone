@@ -217,7 +217,7 @@
       <positionXYProportionalGain>1.1</positionXYProportionalGain>
       <positionXYDifferentialGain>0.0</positionXYDifferentialGain>
       <positionXYIntegralGain>0.0</positionXYIntegralGain>
-      <positionXYLimit>5</positionXYLimit>
+      <positionXYLimit>100</positionXYLimit>
       <positionZProportionalGain>1.0</positionZProportionalGain>
       <positionZDifferentialGain>0.2</positionZDifferentialGain>
       <positionZIntegralGain>0.0</positionZIntegralGain>

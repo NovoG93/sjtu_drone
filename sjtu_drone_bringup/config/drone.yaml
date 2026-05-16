@@ -37,8 +37,10 @@ positionXYProportionalGain: 1.1
 positionXYDifferentialGain: 0.0
 # Integral gain for horizontal position PID controllers. Set to zero, indicating no cumulative error correction.
 positionXYIntegralGain: 0.0
-# Maximum limit for horizontal position control output, restricting maximum correctional force for horizontal errors.
-positionXYLimit: 5
+# Maximum absolute value (m/s) the horizontal position PID may command on the velocity setpoint.
+# This caps the velocity request the position controller produces; it does NOT bound the reachable
+# workspace. Set to a negative value to disable the cap entirely.
+positionXYLimit: 100
 
 # Proportional gain for vertical position PID controller. Influences altitude adjustment in response to height errors.
 positionZProportionalGain: 1.0
